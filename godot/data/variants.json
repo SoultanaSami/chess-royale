@@ -1,0 +1,94 @@
+[
+  {
+    "id": "phalanx",
+    "name": "Phalanx Pawn",
+    "baseChessType": "PAWN",
+    "modelAssetPath": "res://assets/models/phalanx.tscn",
+    "description": "Zieht ein Feld vorwärts, von der Startreihe auch zwei. Schlägt schräg vorwärts. En passant und Umwandlung sind möglich.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "cavalry",
+    "name": "Thunder Cavalry",
+    "baseChessType": "KNIGHT",
+    "modelAssetPath": "res://assets/models/cavalry.tscn",
+    "description": "Zieht im L: zwei Felder in eine Richtung und eines quer. Darf über Figuren springen.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "assassin",
+    "name": "Shadow Assassin",
+    "baseChessType": "BISHOP",
+    "modelAssetPath": "res://assets/models/assassin.tscn",
+    "description": "Zieht diagonal beliebig weit bis zur nächsten Figur. Eigene Figuren blockieren den Weg.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "ram",
+    "name": "Battering Ram",
+    "baseChessType": "ROOK",
+    "modelAssetPath": "res://assets/models/ram.tscn",
+    "description": "Zieht waagerecht oder senkrecht beliebig weit. Kann mit dem König rochieren, wenn die Bedingungen erfüllt sind.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "trebuchet",
+    "name": "Siege Trebuchet",
+    "baseChessType": "ROOK",
+    "modelAssetPath": "res://assets/models/trebuchet.tscn",
+    "description": "Zieht waagerecht oder senkrecht beliebig weit. Kann mit dem König rochieren, wenn die Bedingungen erfüllt sind.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "golem",
+    "name": "Stone Golem Rook",
+    "baseChessType": "ROOK",
+    "modelAssetPath": "res://assets/models/golem.tscn",
+    "description": "Zieht waagerecht oder senkrecht beliebig weit. Kann mit dem König rochieren, wenn die Bedingungen erfüllt sind.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "guard",
+    "name": "Royal Guard",
+    "baseChessType": "KING",
+    "modelAssetPath": "res://assets/models/guard.tscn",
+    "description": "Zieht ein Feld in jede Richtung, aber niemals ins Schach. Kurze und lange Rochade sind möglich.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "queen",
+    "name": "Crimson Queen",
+    "baseChessType": "QUEEN",
+    "modelAssetPath": "res://assets/models/queen.tscn",
+    "description": "Zieht waagerecht, senkrecht oder diagonal beliebig weit bis zur nächsten Figur.",
+    "rulesStatus": "classical",
+    "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."
+  },
+  {
+    "id": "bind",
+    "name": "Fesseln",
+    "kind": "spell",
+    "baseChessType": "SPELL",
+    "modelAssetPath": "",
+    "rulesStatus": "planned",
+    "description": "Fesselt eine Einheit für eine Runde auf ihrem aktuellen Feld. Sie kann sich währenddessen nicht bewegen.",
+    "openRules": "Weitere Auswirkungen, insbesondere auf Angriffe, sind offen. Einsatzregeln und Wechselwirkungen mit Schach sind noch nicht festgelegt."
+  },
+  {
+    "id": "protect",
+    "name": "Schutz",
+    "kind": "spell",
+    "baseChessType": "SPELL",
+    "modelAssetPath": "",
+    "rulesStatus": "planned",
+    "description": "Schützt eine eigene Einheit für die nächste gegnerische Runde. Ein Schlagversuch scheitert vollständig: Beide Figuren bleiben auf ihren Feldern und der gegnerische Zug ist verbraucht.",
+    "openRules": "Einsatzregeln und Wechselwirkungen mit Schach und Königssicherheit sind noch nicht festgelegt."
+  }
+]

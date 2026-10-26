@@ -1,0 +1,24 @@
+{
+  "name": "chess-royale",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Schach, Runen und Königreiche – ein mobiles Strategiespiel",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0",
+    "html-to-image": "^1.11.13",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "prettier": "^3.9.10"
+  }
+}

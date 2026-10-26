@@ -1,0 +1,43 @@
+{
+  "id": "/",
+  "name": "Chess Royale",
+  "short_name": "Chess Royale",
+  "description": "Deine mobile Schach-Arena: klassische Züge, Mana und magische Varianten.",
+  "lang": "de",
+  "start_url": "/?frame=off",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0d0e12",
+  "background_color": "#0d0e12",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Arena öffnen", "short_name": "Arena", "url": "/?frame=off" }
+  ]
+}

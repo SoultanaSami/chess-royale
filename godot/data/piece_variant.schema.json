@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Schachschlachtfeld: Figuren und geplante Zauber",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "name",
+      "baseChessType",
+      "modelAssetPath",
+      "description",
+      "rulesStatus",
+      "openRules"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1
+      },
+      "kind": {
+        "enum": [
+          "unit",
+          "spell"
+        ],
+        "default": "unit"
+      },
+      "baseChessType": {
+        "enum": [
+          "PAWN",
+          "KNIGHT",
+          "BISHOP",
+          "ROOK",
+          "QUEEN",
+          "KING",
+          "SPELL"
+        ]
+      },
+      "modelAssetPath": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "rulesStatus": {
+        "enum": [
+          "classical",
+          "planned"
+        ]
+      },
+      "openRules": {
+        "type": "string"
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "spell"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        "then": {
+          "properties": {
+            "baseChessType": {
+              "const": "SPELL"
+            },
+            "rulesStatus": {
+              "const": "planned"
+            },
+            "modelAssetPath": {
+              "const": ""
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "baseChessType": {
+              "enum": [
+                "PAWN",
+                "KNIGHT",
+                "BISHOP",
+                "ROOK",
+                "QUEEN",
+                "KING"
+              ]
+            },
+            "rulesStatus": {
+              "const": "classical"
+            },
+            "modelAssetPath": {
+              "pattern": "^res://.*\\.(tscn|glb|gltf)$"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

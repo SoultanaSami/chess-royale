@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Chess Royale: Server",
+      "type": "shell",
+      "command": "sh scripts/start.sh",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
