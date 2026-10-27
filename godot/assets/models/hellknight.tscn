@@ -6,4 +6,5 @@
 
 [node name="Model" parent="." instance=ExtResource("1")]
 position = Vector3(0, 0.43533, 0)
+rotation = Vector3(0, 3.141593, 0)
 scale = Vector3(0.6, 0.6, 0.6)

@@ -49,6 +49,8 @@ func _run() -> void:
 		return
 	var wrapper := packed.instantiate()
 	root.add_child(wrapper)
+	var hellknight_model := wrapper.get_node_or_null("Model") as Node3D
+	check(hellknight_model != null and is_equal_approx(absf(hellknight_model.rotation.y), PI), "Hellknight model is rotated 180 degrees")
 	await process_frame
 	var meshes: Array[MeshInstance3D] = []
 	collect_meshes(wrapper, meshes)
