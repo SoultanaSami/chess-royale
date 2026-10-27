@@ -27,6 +27,11 @@ import soundfile as sf
 SR = 44100
 REVISION = "440300901dfe9275fd84e0b7763af1f8443ae62e"
 SOURCE = f"https://raw.githubusercontent.com/sgossner/VSCO-2-CE/{REVISION}/"
+VOCAL_REVISION = "fac6461ee4c7f498b23246eced644616fa58d2ec"
+VOCAL_SOURCE = f"https://raw.githubusercontent.com/sfzinstruments/legato_vocal_tutorial/{VOCAL_REVISION}/"
+# The recorded male voice is an octave below the tutorial's note labels.
+# These cents corrections come from its original SFZ sample map.
+VOCAL_TUNING = {"a3": 25, "c4": 15, "d4": 30, "f4": 30, "g4": 20, "a4": 40, "bb4": 50}
 RNG = np.random.default_rng(271026)
 NOTES = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 
@@ -49,7 +54,7 @@ class Note:
 # parallel block chords jumping around underneath the soloist.
 CHORDS = {
     "dm": ("D2", ["A3", "D4", "F4"], ["D3", "A3", "D4", "E4", "F4", "A4"]),
-    "bb": ("Bb1", ["A3", "D4", "F4"], ["Bb2", "F3", "Bb3", "D4", "F4", "A4"]),
+    "bb": ("Bb1", ["Bb3", "D4", "F4"], ["Bb2", "F3", "Bb3", "D4", "F4", "A4"]),
     "fa": ("A1", ["A3", "C4", "F4"], ["A2", "F3", "A3", "C4", "F4", "G4"]),
     "c": ("C2", ["G3", "C4", "E4"], ["C3", "G3", "C4", "D4", "E4", "G4"]),
     "gm": ("G1", ["Bb3", "D4", "G4"], ["G2", "D3", "G3", "Bb3", "D4", "A4"]),
@@ -62,11 +67,11 @@ CHORDS = {
     "dopen": ("D2", ["A3", "D4", "E4"], ["D3", "A3", "D4", "E4", "A4", "D5"]),
 }
 HARMONY = (
-    ["dopen", "dm", "bb", "as"]
+    ["dopen", "dm", "bb", "a"]
     + ["dm", "bb", "fa", "c", "gm", "df", "bb", "as",
        "dm", "bb", "f", "ce", "gm", "bb", "a", "dm"]
     + ["bb", "fa", "gm", "dm", "bb", "f", "as", "a"]
-    + ["f", "ce", "dm", "bb", "fa", "gm", "c", "c",
+    + ["dm", "c", "bb", "gm", "dm", "bb", "as", "a",
        "bb", "c", "dm", "ac", "bb", "gm", "as", "dm"]
     + ["bb", "fa", "gm", "as"]
     + ["dm", "bb", "fa", "c", "gm", "df", "bb", "as",
@@ -79,19 +84,19 @@ assert len(HARMONY) == 72
 def tempo(bar: int) -> float:
     """Dotted-quarter BPM: small phrase breathing and an actual coda ritardando."""
     if bar < 4:
-        base = 51.0
+        base = 56.0
     elif bar < 20:
-        base = 54.0
+        base = 59.0
     elif bar < 28:
-        base = 51.0
+        base = 55.0
     elif bar < 44:
-        base = 57.0
+        base = 63.0
     elif bar < 48:
-        base = 52.0
+        base = 57.0
     elif bar < 64:
-        base = 54.0
+        base = 61.0
     else:
-        return [52, 51, 50, 50, 49, 48, 46, 44][bar - 64]
+        return [56, 55, 54, 53, 52, 50, 48, 46][bar - 64]
     return base - (1.3 if bar % 8 == 7 else 0.0)
 
 
@@ -196,35 +201,96 @@ def score() -> list[Note]:
 
     for bar, chord_name in enumerate(HARMONY):
         bass, inner, arpeggio = CHORDS[chord_name]
-        energy = .48 if bar < 4 else .67 if bar < 20 else .52 if bar < 28 else 1.0 if bar < 44 else .54 if bar < 48 else .80 if bar < 64 else max(.30, .58 - (bar - 64) * .04)
+        energy = .62 if bar < 4 else .76 if bar < 20 else .48 + (bar - 20) * .05 if bar < 28 else 1.0 if bar < 44 else .48 if bar < 48 else .87 if bar < 64 else max(.30, .58 - (bar - 64) * .04)
         cello_key = pitch(bass) + 12
-        notes.append(Note("cello", cello_key, bar * 6 + .035, 5.86, .34 * energy))
+        notes.append(Note("cello", cello_key, bar * 6 + .035, 5.86, .43 * energy))
         for index, key in enumerate(inner[:2]):
-            add("viola", key, bar, .08 + index * .045, 5.9, .18 * energy)
+            add("viola", key, bar, .08 + index * .045, 5.9, .24 * energy)
         if bar >= 4 and bar < 68:
             for index, key in enumerate(inner[1:]):
-                add("strings", key, bar, .11 + index * .08, 5.85, .18 * energy)
-        if 8 <= bar < 64:
-            add("bass", bass, bar, .02, 5.9, .20 * energy)
+                add("strings", key, bar, .11 + index * .08, 5.85, .30 * energy)
+        if bar < 68:
+            add("bass", bass, bar, .02, 5.9, .31 * energy)
 
         # The six-eight harp is a soft, unevenly accented cradle, not a click.
         pattern = [0, 2, 3, 1, 4, 3] if bar % 2 == 0 else [0, 3, 2, 1, 4, 5]
         for eighth, index in enumerate(pattern):
+            if bar < 64 and eighth not in (0, 3):
+                continue
             if (bar < 4 or bar >= 68) and eighth not in (0, 3):
                 continue
             if 20 <= bar < 24 and eighth in (2, 5):
                 continue
             accent = [1.0, .60, .69, .85, .62, .58][eighth]
-            add("harp", arpeggio[index], bar, eighth + .025, 5.0, .22 * energy * accent)
+            add("harp", arpeggio[index], bar, eighth + .025, 5.0, .10 * energy * accent)
+
+        # Ground the tune in low bow strokes. Two recorded round robins keep
+        # the pulse human; the central retreat deliberately drops this layer.
+        if 0 <= bar < 20 or 24 <= bar < 44 or 48 <= bar < 68:
+            ostinato = [pitch(arpeggio[0]), pitch(arpeggio[1]), pitch(arpeggio[2])]
+            while min(ostinato) < 43:
+                ostinato = [key + 12 for key in ostinato]
+            for eighth, index in enumerate([0, 1, 2, 0, 2, 1]):
+                accent = [1.0, .50, .58, .86, .46, .55][eighth]
+                notes.append(Note("spiccato", ostinato[index], bar * 6 + eighth, .56, .40 * energy * accent))
+            if 28 <= bar < 44 or 48 <= bar < 64:
+                for eighth in (2.5, 5.5):
+                    notes.append(Note("spiccato", ostinato[1], bar * 6 + eighth, .34, .17 * energy))
+
+        # Dark horn calls at the opening, then harmonic answers to the violin.
+        if bar < 20 or 24 <= bar < 44 or 48 <= bar < 64:
+            for index in (0, 2):
+                notes.append(Note("horn", pitch(inner[index]) - 12, bar * 6 + .14, 5.35, .32 * energy))
+            if bar >= 4:
+                notes.append(Note("horn", pitch(inner[0]), bar * 6 + .08, 2.1, .27 * energy))
+                notes.append(Note("horn", pitch(inner[1]), bar * 6 + 3.02, 2.6, .24 * energy))
+
+        # Wordless male choir appears in waves: a distant opening fifth,
+        # a rising pre-chorus and the broad summit, with breathing space after.
+        choral_gain = .11 if bar < 2 else .16 if 12 <= bar < 16 else .14 + (bar - 24) * .035 if 24 <= bar < 28 else .32 if 28 <= bar < 44 else .27 if 48 <= bar < 60 else .13 if 64 <= bar < 66 else 0
+        if choral_gain:
+            for index, key in enumerate(inner):
+                if bar < 2 and index == 2:
+                    continue
+                notes.append(Note("choir", pitch(key) - 12, bar * 6 + .22 + index * .07, 5.3, choral_gain * energy))
 
         # A second line answers the violin at the emotional summit, rather
         # than doubling every lead note. All notes are chord tones.
         if 28 <= bar < 44 or 52 <= bar < 60:
-            add("strings", inner[2], bar, 3.10, 2.75, .20 * energy)
-        if 28 <= bar < 44 or 48 <= bar < 62:
-            add("drum", "D2", bar, 0, 2.0, .080 * energy)
-            if bar % 2 == 0:
-                add("drum", "A2", bar, 3, 1.5, .035 * energy)
+            add("strings", inner[2], bar, 3.10, 2.75, .30 * energy)
+        if bar in (0, 2) or 4 <= bar < 20 or 24 <= bar < 44 or 48 <= bar < 64:
+            strong = bar in (0, 4, 12, 28, 36, 48, 56)
+            add("drum", "A1", bar, 0, 2.0, (.40 if strong else .23) * energy)
+            add("drum", "D2", bar, 3, 1.5, .12 * energy)
+            if bar in (11, 27, 35, 47, 55):
+                for beat, strength in [(4.5, .09), (5, .13), (5.5, .17)]:
+                    add("drum", "A1", bar, beat, .5, strength)
+        # Recorded concert bass drums and lower tenor drums form the front
+        # of the rhythm section. Audible skin attacks survive small speakers;
+        # the modeled low drum above is only a supporting resonance.
+        if bar < 68:
+            retreat = 20 <= bar < 24 or 44 <= bar < 48
+            weight = .42 if retreat else .82 if bar < 4 else 1.0
+            hit = .5 if bar == 0 else .025
+            add("wardrum", "C2", bar, hit, 2.4, .95 * weight)
+            add("wardrum", "C2", bar, 3.0, 2.0, .64 * weight)
+            if not retreat:
+                for beat, strength in [(2.5, .29), (5.0, .34)]:
+                    add("wardrum", "C2", bar, beat, 1.1, strength * weight)
+                for beat, strength in [(1.5, .34), (3.0, .47), (4.5, .28), (5.5, .38)]:
+                    add("tenor", "A2", bar, beat, .9, strength * weight)
+                if bar >= 4:
+                    add("snare", "D2", bar, 3.02, .9, .22 if bar < 28 else .30)
+                    add("snare", "D2", bar, 5.5, .6, .09)
+            if bar in (3, 11, 19, 27, 35, 47, 55, 63):
+                for step in range(8):
+                    beat = 4 + step * .25
+                    add("tenor", "A2" if step % 2 else "C3", bar, beat, .45, .18 + step * .035)
+                    add("snare", "D2", bar, beat + .015, .35, .07 + step * .016)
+        if bar in (3, 27, 47, 55):
+            add("swell", "C4", bar, 2.5, 3.45, .13)
+        if bar in (4, 28, 48, 56):
+            add("cymbal", "C4", bar, 0, 8, .13)
         if bar in (0, 28, 48, 64):
             add("bell", "D5" if bar in (0, 48) else "F5", bar, .14, 10, .035)
     return sorted(notes, key=lambda n: n.start)
@@ -241,6 +307,15 @@ def sample_manifest() -> dict[str, list[tuple[int, str, str]]]:
     bank("cello", ["G1", "B1", "D2", "F2", "A2"], "Strings/Cello Section/susvib/susvib_", "_v1_1.wav", 12)
     bank("bass", ["G0", "A#0", "D1", "F#1"], "Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_", "_v1_rr1.wav", 12)
     bank("harp", ["C3", "E3", "G3", "D4", "F4", "A4", "C5"], "Strings/Harp/KSHarp_", "_mf.wav")
+    bank("horn", ["A#1", "D2", "F2", "A2", "C3"], "Brass/F Horn/sus/MOHorn_sus_", "_v3_1.wav", 12)
+    for rr in (1, 2):
+        bank("spiccato", ["G1", "B1", "D2", "F2", "A2", "C3"], "Strings/Cello Section/spic/spic_", f"_v2_RR{rr}.wav", 12, "p" if rr == 1 else "rr2")
+    result["choir"] = [(pitch(name[0].upper() + name[1:]) - 12, f"vocal/Samples/vowel_sustain/a/vowel_a_{name}.wav", "p") for name in VOCAL_TUNING]
+    for part in ("cymbal", "swell"):
+        result[part] = [(60, "Percussion/cymbal-crash1_mp_rr1.wav", "p")]
+    result["wardrum"] = [(36, f"Percussion/BDrumNewhit_v6_rr{rr}_Sum.wav", "p" if rr == 1 else "rr2") for rr in (1, 2)]
+    result["tenor"] = [(48, f"VSCO 1 Percussion/drums/tenor/tenor_lower/tenor_f_{rr}.wav", "p" if rr == 1 else "rr2") for rr in (1, 2)]
+    result["snare"] = [(38, f"Percussion/Snare2-HitSN_v5_rr{rr}_Sum.wav", "p" if rr == 1 else "rr2") for rr in (1, 2)]
     return result
 
 
@@ -251,7 +326,8 @@ def prepare_samples(cache: Path, manifest: dict) -> None:
         if dest.exists():
             return
         dest.parent.mkdir(parents=True, exist_ok=True)
-        request = urllib.request.Request(SOURCE + urllib.parse.quote(path), headers={"User-Agent": "Schachschlachtfeld-score/1.0"})
+        url = VOCAL_SOURCE + urllib.parse.quote(path[6:]) if path.startswith("vocal/") else SOURCE + urllib.parse.quote(path)
+        request = urllib.request.Request(url, headers={"User-Agent": "Schachschlachtfeld-score/2.0"})
         with urllib.request.urlopen(request, timeout=45) as response:
             content = response.read()
         if not content.startswith(b"RIFF"):
@@ -287,15 +363,17 @@ class Orchestra:
             audible = np.flatnonzero(energy > float(energy.max()) * .035)
             if len(audible):
                 data = data[max(0, int(audible[0]) - int(.018 * SR)):]
-            low, high = {"violin": (155, 8200), "strings": (145, 7300), "viola": (110, 6500), "cello": (48, 5700), "bass": (28, 2600), "harp": (95, 8200)}[part]
+            low, high = {"violin": (155, 8200), "strings": (145, 7300), "viola": (110, 6500), "cello": (48, 5700), "bass": (28, 2600), "harp": (95, 8200), "horn": (75, 5600), "spiccato": (60, 6400), "choir": (85, 4900), "cymbal": (400, 7500), "swell": (400, 7500), "wardrum": (32, 6500), "tenor": (70, 6500), "snare": (140, 6500)}[part]
             data = signal.sosfilt(signal.butter(2, [low, high], btype="bandpass", fs=SR, output="sos"), data, axis=0).astype(np.float32)
-            if part == "harp":
-                scale = .58 / max(.001, float(np.max(np.abs(data))))
+            if part in ("harp", "spiccato", "cymbal", "swell", "wardrum", "tenor", "snare"):
+                target = .82 if part in ("wardrum", "tenor", "snare") else .58
+                scale = target / max(.001, float(np.max(np.abs(data))))
             else:
                 body = data[int(.35 * SR):int(2.5 * SR)]
                 scale = .10 / max(.001, float(np.sqrt(np.mean(body ** 2))))
             self.sources[path] = data * scale
-        ratio = Fraction(2 ** ((root - key) / 12)).limit_denominator(1200)
+        cents = VOCAL_TUNING[Path(path).stem.split("_")[-1]] if part == "choir" else 0
+        ratio = Fraction(2 ** ((root - key) / 12 - cents / 1200)).limit_denominator(1200)
         result = signal.resample_poly(self.sources[path], ratio.numerator, ratio.denominator, axis=0).astype(np.float32)
         self.pitched[token] = result
         return result
@@ -304,11 +382,33 @@ class Orchestra:
         release = .58 if note.instrument in ("strings", "viola", "cello", "bass") else .20
         if note.instrument == "harp":
             release = 1.4
+        elif note.instrument in ("horn", "choir"):
+            release = .48
+        elif note.instrument == "spiccato":
+            release = .09
+        elif note.instrument in ("cymbal", "swell"):
+            release = .65
+        elif note.instrument in ("wardrum", "tenor", "snare"):
+            release = .38
         count = int((length + release) * SR)
-        source = self.recording(note.instrument, note.key)
+        layer = "rr2" if note.instrument in ("spiccato", "wardrum", "tenor", "snare") and round(note.start * 2) % 2 else "p"
+        source = self.recording(note.instrument, note.key, layer)
         data = np.zeros((count, 2), np.float32)
         available = min(count, len(source))
         data[:available] = source[:available]
+        if note.instrument == "swell":
+            body = min(int(length * SR), len(source))
+            data[:] = 0
+            data[:body] = source[:body][::-1]
+        if note.instrument == "choir":
+            data[:] = 0
+            mono = source.mean(axis=1)
+            source_indices = np.arange(len(mono))
+            for voice, (detune, pan) in enumerate([(-7, -.8), (4, .65), (0, -.1), (8, .85), (-3, -.55)]):
+                indices = np.arange(count) * 2 ** (detune / 1200) + (.06 + voice * .075) * SR
+                singer = np.interp(indices, source_indices, mono, left=0, right=0)
+                data[:, 0] += singer * np.sqrt(1 - pan) / np.sqrt(5)
+                data[:, 1] += singer * np.sqrt(1 + pan) / np.sqrt(5)
         if note.instrument == "violin" and note.gain > .72:
             strong = self.recording("violin", note.key, "f")
             amount = min(.44, (note.gain - .72) * 2)
@@ -316,7 +416,7 @@ class Orchestra:
             data[:min(count, len(strong))] += strong[:count] * amount
         # Notes here stay shorter than the recordings: no artificial bow loops.
         t = np.arange(count, dtype=np.float32) / SR
-        attack = .025 if note.instrument == "harp" else .065 if note.instrument == "violin" else .19
+        attack = .002 if note.instrument in ("wardrum", "tenor", "snare") else .012 if note.instrument in ("spiccato", "cymbal") else .025 if note.instrument == "harp" else .065 if note.instrument == "violin" else .45 if note.instrument == "choir" else .19
         envelope = np.minimum(1, t / attack)
         if note.instrument != "harp":
             envelope *= .82 + .18 * np.sin(np.minimum(t / max(length, .1), 1) * np.pi)
@@ -372,19 +472,25 @@ def write_midi(notes: list[Note], path: Path) -> None:
             previous = tick
         result.extend(b"\x00\xff\x2f\x00")
         return b"MTrk" + struct.pack(">I", len(result)) + result
-    programs = {"violin": 40, "strings": 48, "viola": 41, "cello": 42, "bass": 43, "harp": 46, "drum": 47, "bell": 14}
+    programs = {"violin": 40, "strings": 48, "viola": 41, "cello": 42, "bass": 43, "harp": 46, "drum": 47, "bell": 14, "spiccato": 42, "horn": 60, "choir": 52, "cymbal": 119, "swell": 119, "wardrum": 0, "tenor": 0, "snare": 0}
+    percussion_keys = {"drum": 41, "wardrum": 36, "tenor": 45, "snare": 38, "cymbal": 49, "swell": 55}
+    melodic_channels = iter(c for c in range(16) if c != 9)
     conductor = [(0, b"\xff\x58\x04\x06\x03\x24\x08")]
     for bar in range(72):
         micros = round(60_000_000 / (tempo(bar) * 1.5))
         conductor.append((bar * 1440, b"\xff\x51\x03" + micros.to_bytes(3, "big")))
     tracks = [chunk(conductor)]
-    for channel, (name, program) in enumerate(programs.items()):
-        events = [(0, b"\xff\x03" + vlq(len(name)) + name.encode()), (0, bytes([0xC0 + channel, program]))]
+    for name, program in programs.items():
+        channel = 9 if name in percussion_keys else next(melodic_channels)
+        events = [(0, b"\xff\x03" + vlq(len(name)) + name.encode())]
+        if name not in percussion_keys:
+            events.append((0, bytes([0xC0 + channel, program])))
         for n in notes:
             if n.instrument != name:
                 continue
-            events.append((round(n.start * 240), bytes([0x90 + channel, n.key, max(1, min(110, round(n.gain * 100)))])))
-            events.append((round((n.start + n.duration) * 240), bytes([0x80 + channel, n.key, 0])))
+            key = percussion_keys.get(name, n.key)
+            events.append((round(n.start * 240), bytes([0x90 + channel, key, max(1, min(110, round(n.gain * 100)))])))
+            events.append((round((n.start + n.duration) * 240), bytes([0x80 + channel, key, 0])))
         tracks.append(chunk(events))
     path.write_bytes(b"MThd" + struct.pack(">IHHH", 6, 1, len(tracks), 480) + b"".join(tracks))
 
@@ -402,7 +508,8 @@ def main() -> None:
     total = int((BAR_STARTS[-1] + 6.0) * SR)
     dry = np.zeros((total, 2), np.float32)
     sends = np.zeros_like(dry)
-    placement = {"violin": (-.12, .30, .22), "strings": (.26, .95, .32), "viola": (-.30, .65, .26), "cello": (.14, .55, .24), "bass": (0, .25, .18), "harp": (.35, .7, .29), "drum": (-.1, .35, .16), "bell": (-.45, .6, .45)}
+    placement = {"violin": (-.12, .30, .22), "strings": (.26, .95, .32), "viola": (-.30, .65, .26), "cello": (.14, .55, .24), "bass": (0, .25, .18), "harp": (.35, .7, .29), "drum": (-.1, .35, .22), "bell": (-.45, .6, .45), "spiccato": (-.25, .72, .18), "horn": (.15, .8, .30), "choir": (0, 1.0, .52), "cymbal": (.32, .85, .25), "swell": (-.32, .85, .30)}
+    placement.update({"wardrum": (0, .55, .24), "tenor": (-.25, .65, .20), "snare": (.25, .65, .22)})
     for part, (pan, width, send) in placement.items():
         stem = np.zeros_like(dry)
         for note in notes:
@@ -425,14 +532,19 @@ def main() -> None:
         source = .8 * sends[:, channel] + .2 * sends[:, 1 - channel]
         dry[:, channel] += signal.fftconvolve(source, hall_ir(channel))[:total]
     dry = signal.sosfilt(signal.butter(2, 30, btype="highpass", fs=SR, output="sos"), dry, axis=0).astype(np.float32)
-    fade_in = int(.45 * SR)
+    fade_in = int(.08 * SR)
     fade_out = int(4 * SR)
     dry[:fade_in] *= np.sin(np.linspace(0, np.pi / 2, fade_in))[:, None] ** 2
     dry[-fade_out:] *= np.cos(np.linspace(0, np.pi / 2, fade_out))[:, None] ** 2
     meter = pyln.Meter(SR)
     loudness = meter.integrated_loudness(dry)
-    gain = min(10 ** ((-19.0 - loudness) / 20), .76 / float(np.max(np.abs(dry))))
-    dry *= gain
+    dry *= 10 ** ((-17.5 - loudness) / 20)
+    # Catch only the strongest drum transients with a smooth knee. A single
+    # bass-drum hit must not force the entire orchestral bed several dB down.
+    magnitude = np.abs(dry)
+    limited = magnitude > .65
+    limited_fraction = float(np.mean(limited))
+    dry[limited] = np.sign(dry[limited]) * (.65 + .17 * np.tanh((magnitude[limited] - .65) / .17))
     assert np.isfinite(dry).all() and float(np.max(np.abs(dry))) < .99
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.wav:
@@ -444,11 +556,14 @@ def main() -> None:
             encoded.write(dry[offset:offset + 4096])
     write_midi(notes, args.output.with_suffix(".mid"))
     metadata = {
-        "title": "Glut der alten Krone", "duration_seconds": round(total / SR, 3),
+        "title": "Glut der alten Krone", "arrangement_revision": 3, "duration_seconds": round(total / SR, 3),
         "bars": 72, "meter": "6/8", "tonality": "D minor / F major", "notes": len(notes),
         "integrated_lufs_before_encoding": round(float(meter.integrated_loudness(dry)), 2),
         "peak_dbfs_before_encoding": round(20 * np.log10(float(np.max(np.abs(dry)))), 2),
+        "soft_limited_sample_fraction": round(limited_fraction, 6),
         "source_revision": REVISION, "output_sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
+        "vocal_source_revision": VOCAL_REVISION,
+        "instrument_note_counts": {part: sum(n.instrument == part for n in notes) for part in placement},
         "recordings": {p: hashlib.sha256((args.cache / p).read_bytes()).hexdigest() for bank in manifest.values() for _, p, _ in bank},
     }
     args.output.with_suffix(".json").write_text(json.dumps(metadata, indent=2) + "\n")

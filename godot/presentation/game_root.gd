@@ -2,6 +2,8 @@ extends Node3D
 ## UI uses the same legal commands as AI. Match state changes turns synchronously.
 enum Screen { MAIN, DECK, BATTLE }
 const OPPONENT_INTERVAL := 0.16
+const SETTINGS_PATH := "user://settings.cfg"
+const DEFAULT_MUSIC_VOLUME := 0.35
 var screen: Screen = Screen.MAIN
 var catalog := Catalog.new()
 var game: GameManager
@@ -23,6 +25,7 @@ var last_hover := BoardState.NONE
 var promotion_target := BoardState.NONE
 var persistence_enabled: bool = true
 var music_director: MusicDirector
+var music_volume: float = DEFAULT_MUSIC_VOLUME
 
 func _ready() -> void:
 	DisplayServer.window_set_title("Schachschlachtfeld")
@@ -31,6 +34,8 @@ func _ready() -> void:
 	load_deck()
 	music_director = MusicDirector.new()
 	add_child(music_director)
+	music_volume = load_music_volume()
+	set_music_volume(music_volume, false)
 	library = LibraryView.new()
 	library.position.x = 40
 	add_child(library)
@@ -73,6 +78,7 @@ func _ready() -> void:
 	main_menu.deck_requested.connect(open_deck)
 	main_menu.resume_requested.connect(resume_match)
 	main_menu.abandon_requested.connect(abandon_match)
+	main_menu.music_volume_changed.connect(set_music_volume)
 	main_menu.quit_requested.connect(func(): get_tree().quit())
 	open_main_menu()
 	if "--battle-preview" in OS.get_cmdline_user_args():
@@ -118,7 +124,7 @@ func open_main_menu() -> void:
 	library.show()
 	library.set_process_mode(Node.PROCESS_MODE_INHERIT)
 	library.camera.current = true
-	main_menu.present(game != null and not game.finished)
+	main_menu.present(game != null and not game.finished, music_volume)
 
 func show_battle() -> void:
 	music_director.play_cue("battle")
@@ -255,7 +261,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if screen == Screen.DECK:
 			close_deck()
 		elif screen == Screen.MAIN:
-			if game != null and not game.finished:
+			if main_menu.settings_panel.visible:
+				main_menu.close_settings()
+			elif game != null and not game.finished:
 				resume_match()
 		elif BoardState.inside(selected):
 			clear_selection()
@@ -276,6 +284,24 @@ func load_deck() -> void:
 		# Keep valid unit choices from older decks; old spell slots are retired.
 		if value is Array and value.size() >= 16 and catalog.valid_deck(value.slice(0, 16)):
 			deck = value.slice(0, 16)
+
+func load_music_volume() -> float:
+	if not persistence_enabled:
+		return DEFAULT_MUSIC_VOLUME
+	var config := ConfigFile.new()
+	if config.load(SETTINGS_PATH) == OK:
+		return clampf(float(config.get_value("audio", "music_volume", DEFAULT_MUSIC_VOLUME)), 0.0, 1.0)
+	return DEFAULT_MUSIC_VOLUME
+
+func set_music_volume(value: float, save: bool = true) -> void:
+	music_volume = clampf(value, 0.0, 1.0)
+	var bus_index := AudioServer.get_bus_index(MusicDirector.MUSIC_BUS)
+	if bus_index >= 0:
+		AudioServer.set_bus_volume_linear(bus_index, music_volume)
+	if save and persistence_enabled:
+		var config := ConfigFile.new()
+		config.set_value("audio", "music_volume", music_volume)
+		config.save(SETTINGS_PATH)
 
 func save_deck() -> void:
 	if not persistence_enabled:

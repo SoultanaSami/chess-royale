@@ -1,0 +1,507 @@
+{
+  "title": "Trommeln vor der Schlacht",
+  "bpm": 84,
+  "meter": "4/4",
+  "bars": 16,
+  "duration_seconds": 45.714,
+  "instruments": [
+    "wardrum",
+    "tenor",
+    "snare"
+  ],
+  "integrated_lufs": -20.91,
+  "peak_dbfs": -2.5,
+  "loop_boundary_step": 0.001737426035106182,
+  "source_revision": "440300901dfe9275fd84e0b7763af1f8443ae62e",
+  "hits": [
+    {
+      "seconds": 0.0481,
+      "instrument": "wardrum",
+      "strength": 0.756,
+      "key": 36
+    },
+    {
+      "seconds": 0.75,
+      "instrument": "tenor",
+      "strength": 0.48719999999999997,
+      "key": 45
+    },
+    {
+      "seconds": 1.482,
+      "instrument": "wardrum",
+      "strength": 0.6384,
+      "key": 36
+    },
+    {
+      "seconds": 2.1763,
+      "instrument": "tenor",
+      "strength": 0.5544,
+      "key": 45
+    },
+    {
+      "seconds": 2.893,
+      "instrument": "wardrum",
+      "strength": 0.8028594438246963,
+      "key": 36
+    },
+    {
+      "seconds": 3.613,
+      "instrument": "tenor",
+      "strength": 0.517398308242582,
+      "key": 43
+    },
+    {
+      "seconds": 4.33,
+      "instrument": "wardrum",
+      "strength": 0.6779701970075214,
+      "key": 36
+    },
+    {
+      "seconds": 5.0505,
+      "instrument": "tenor",
+      "strength": 0.5887635921381107,
+      "key": 43
+    },
+    {
+      "seconds": 5.77,
+      "instrument": "wardrum",
+      "strength": 0.8404378001065472,
+      "key": 36
+    },
+    {
+      "seconds": 6.4696,
+      "instrument": "tenor",
+      "strength": 0.5416154711797748,
+      "key": 45
+    },
+    {
+      "seconds": 7.1797,
+      "instrument": "wardrum",
+      "strength": 0.7097030312010844,
+      "key": 36
+    },
+    {
+      "seconds": 7.9098,
+      "instrument": "tenor",
+      "strength": 0.6163210534114679,
+      "key": 45
+    },
+    {
+      "seconds": 8.6273,
+      "instrument": "wardrum",
+      "strength": 0.8612922145156369,
+      "key": 34
+    },
+    {
+      "seconds": 9.3328,
+      "instrument": "tenor",
+      "strength": 0.5550549826878548,
+      "key": 43
+    },
+    {
+      "seconds": 10.0352,
+      "instrument": "wardrum",
+      "strength": 0.7273134255909822,
+      "key": 34
+    },
+    {
+      "seconds": 10.7685,
+      "instrument": "tenor",
+      "strength": 0.6316142906448003,
+      "key": 43
+    },
+    {
+      "seconds": 10.7661,
+      "instrument": "snare",
+      "strength": 0.16,
+      "key": 38
+    },
+    {
+      "seconds": 10.927,
+      "instrument": "snare",
+      "strength": 0.178,
+      "key": 38
+    },
+    {
+      "seconds": 11.1145,
+      "instrument": "snare",
+      "strength": 0.196,
+      "key": 38
+    },
+    {
+      "seconds": 11.2855,
+      "instrument": "snare",
+      "strength": 0.214,
+      "key": 38
+    },
+    {
+      "seconds": 11.4679,
+      "instrument": "wardrum",
+      "strength": 0.8612922145156369,
+      "key": 36
+    },
+    {
+      "seconds": 12.1978,
+      "instrument": "tenor",
+      "strength": 0.5550549826878548,
+      "key": 45
+    },
+    {
+      "seconds": 12.8958,
+      "instrument": "wardrum",
+      "strength": 0.7273134255909822,
+      "key": 36
+    },
+    {
+      "seconds": 13.6165,
+      "instrument": "tenor",
+      "strength": 0.6316142906448003,
+      "key": 45
+    },
+    {
+      "seconds": 14.3304,
+      "instrument": "wardrum",
+      "strength": 0.8404378001065472,
+      "key": 36
+    },
+    {
+      "seconds": 15.035,
+      "instrument": "tenor",
+      "strength": 0.5416154711797748,
+      "key": 43
+    },
+    {
+      "seconds": 15.7707,
+      "instrument": "wardrum",
+      "strength": 0.7097030312010844,
+      "key": 36
+    },
+    {
+      "seconds": 16.4706,
+      "instrument": "tenor",
+      "strength": 0.6163210534114679,
+      "key": 43
+    },
+    {
+      "seconds": 17.1862,
+      "instrument": "wardrum",
+      "strength": 0.8028594438246963,
+      "key": 36
+    },
+    {
+      "seconds": 17.8947,
+      "instrument": "tenor",
+      "strength": 0.517398308242582,
+      "key": 45
+    },
+    {
+      "seconds": 18.6071,
+      "instrument": "wardrum",
+      "strength": 0.6779701970075214,
+      "key": 36
+    },
+    {
+      "seconds": 19.3284,
+      "instrument": "tenor",
+      "strength": 0.5887635921381107,
+      "key": 45
+    },
+    {
+      "seconds": 20.0351,
+      "instrument": "wardrum",
+      "strength": 0.756,
+      "key": 34
+    },
+    {
+      "seconds": 20.7695,
+      "instrument": "tenor",
+      "strength": 0.48719999999999997,
+      "key": 43
+    },
+    {
+      "seconds": 21.4832,
+      "instrument": "wardrum",
+      "strength": 0.6384,
+      "key": 34
+    },
+    {
+      "seconds": 22.1892,
+      "instrument": "tenor",
+      "strength": 0.5544,
+      "key": 43
+    },
+    {
+      "seconds": 22.1916,
+      "instrument": "snare",
+      "strength": 0.16,
+      "key": 38
+    },
+    {
+      "seconds": 22.3545,
+      "instrument": "snare",
+      "strength": 0.178,
+      "key": 38
+    },
+    {
+      "seconds": 22.5484,
+      "instrument": "snare",
+      "strength": 0.196,
+      "key": 38
+    },
+    {
+      "seconds": 22.7268,
+      "instrument": "snare",
+      "strength": 0.214,
+      "key": 38
+    },
+    {
+      "seconds": 22.9126,
+      "instrument": "wardrum",
+      "strength": 0.756,
+      "key": 36
+    },
+    {
+      "seconds": 23.6066,
+      "instrument": "tenor",
+      "strength": 0.48719999999999997,
+      "key": 45
+    },
+    {
+      "seconds": 24.3331,
+      "instrument": "wardrum",
+      "strength": 0.6384,
+      "key": 36
+    },
+    {
+      "seconds": 25.0465,
+      "instrument": "tenor",
+      "strength": 0.5544,
+      "key": 45
+    },
+    {
+      "seconds": 25.7708,
+      "instrument": "wardrum",
+      "strength": 0.8028594438246963,
+      "key": 36
+    },
+    {
+      "seconds": 26.4717,
+      "instrument": "tenor",
+      "strength": 0.517398308242582,
+      "key": 43
+    },
+    {
+      "seconds": 27.1909,
+      "instrument": "wardrum",
+      "strength": 0.6779701970075214,
+      "key": 36
+    },
+    {
+      "seconds": 27.8915,
+      "instrument": "tenor",
+      "strength": 0.5887635921381107,
+      "key": 43
+    },
+    {
+      "seconds": 28.6127,
+      "instrument": "wardrum",
+      "strength": 0.8404378001065472,
+      "key": 36
+    },
+    {
+      "seconds": 29.3363,
+      "instrument": "tenor",
+      "strength": 0.5416154711797748,
+      "key": 45
+    },
+    {
+      "seconds": 30.0354,
+      "instrument": "wardrum",
+      "strength": 0.7097030312010844,
+      "key": 36
+    },
+    {
+      "seconds": 30.7612,
+      "instrument": "tenor",
+      "strength": 0.6163210534114679,
+      "key": 45
+    },
+    {
+      "seconds": 31.4838,
+      "instrument": "wardrum",
+      "strength": 0.8612922145156369,
+      "key": 34
+    },
+    {
+      "seconds": 32.1811,
+      "instrument": "tenor",
+      "strength": 0.5550549826878548,
+      "key": 43
+    },
+    {
+      "seconds": 32.8972,
+      "instrument": "wardrum",
+      "strength": 0.7273134255909822,
+      "key": 34
+    },
+    {
+      "seconds": 33.6178,
+      "instrument": "tenor",
+      "strength": 0.6316142906448003,
+      "key": 43
+    },
+    {
+      "seconds": 33.6104,
+      "instrument": "snare",
+      "strength": 0.16,
+      "key": 38
+    },
+    {
+      "seconds": 33.8017,
+      "instrument": "snare",
+      "strength": 0.178,
+      "key": 38
+    },
+    {
+      "seconds": 33.966,
+      "instrument": "snare",
+      "strength": 0.196,
+      "key": 38
+    },
+    {
+      "seconds": 34.1556,
+      "instrument": "snare",
+      "strength": 0.214,
+      "key": 38
+    },
+    {
+      "seconds": 34.3261,
+      "instrument": "wardrum",
+      "strength": 0.8612922145156369,
+      "key": 36
+    },
+    {
+      "seconds": 35.0538,
+      "instrument": "tenor",
+      "strength": 0.5550549826878548,
+      "key": 45
+    },
+    {
+      "seconds": 35.7704,
+      "instrument": "wardrum",
+      "strength": 0.7273134255909822,
+      "key": 36
+    },
+    {
+      "seconds": 36.4776,
+      "instrument": "tenor",
+      "strength": 0.6316142906448003,
+      "key": 45
+    },
+    {
+      "seconds": 37.1945,
+      "instrument": "wardrum",
+      "strength": 0.8404378001065472,
+      "key": 36
+    },
+    {
+      "seconds": 37.9085,
+      "instrument": "tenor",
+      "strength": 0.5416154711797748,
+      "key": 43
+    },
+    {
+      "seconds": 38.6112,
+      "instrument": "wardrum",
+      "strength": 0.7097030312010844,
+      "key": 36
+    },
+    {
+      "seconds": 39.3297,
+      "instrument": "tenor",
+      "strength": 0.6163210534114679,
+      "key": 43
+    },
+    {
+      "seconds": 40.0507,
+      "instrument": "wardrum",
+      "strength": 0.8028594438246963,
+      "key": 36
+    },
+    {
+      "seconds": 40.7703,
+      "instrument": "tenor",
+      "strength": 0.517398308242582,
+      "key": 45
+    },
+    {
+      "seconds": 41.467,
+      "instrument": "wardrum",
+      "strength": 0.6779701970075214,
+      "key": 36
+    },
+    {
+      "seconds": 42.1814,
+      "instrument": "tenor",
+      "strength": 0.5887635921381107,
+      "key": 45
+    },
+    {
+      "seconds": 42.9129,
+      "instrument": "wardrum",
+      "strength": 0.756,
+      "key": 34
+    },
+    {
+      "seconds": 43.6161,
+      "instrument": "tenor",
+      "strength": 0.48719999999999997,
+      "key": 43
+    },
+    {
+      "seconds": 44.3401,
+      "instrument": "wardrum",
+      "strength": 0.6384,
+      "key": 34
+    },
+    {
+      "seconds": 45.0378,
+      "instrument": "tenor",
+      "strength": 0.5544,
+      "key": 43
+    },
+    {
+      "seconds": 45.039,
+      "instrument": "snare",
+      "strength": 0.16,
+      "key": 38
+    },
+    {
+      "seconds": 45.2268,
+      "instrument": "snare",
+      "strength": 0.178,
+      "key": 38
+    },
+    {
+      "seconds": 45.3912,
+      "instrument": "snare",
+      "strength": 0.196,
+      "key": 38
+    },
+    {
+      "seconds": 45.5909,
+      "instrument": "snare",
+      "strength": 0.214,
+      "key": 38
+    }
+  ],
+  "recordings": {
+    "Percussion/BDrumNewhit_v6_rr1_Sum.wav": "bb8966b0478cf77e3ed7e484fcfb212c1b9df356cc9a56017e1d3b4c5f6341bc",
+    "Percussion/BDrumNewhit_v6_rr2_Sum.wav": "7d82f466e07e586da3f13c569abb6c4074afd3d1bafb786fe31fc566f0026207",
+    "VSCO 1 Percussion/drums/tenor/tenor_lower/tenor_f_1.wav": "9c3b1d9c840a9dd884121f7dd6841368ca69e1465f1de864b82f05cc368d84c2",
+    "VSCO 1 Percussion/drums/tenor/tenor_lower/tenor_f_2.wav": "87fc5247be73228e121393b95dfa8506085c1cf4da7011ba8c89c44ebeeaf604",
+    "Percussion/Snare2-HitSN_v5_rr1_Sum.wav": "8deb654b739f6dfb01f192b7043a9aad92b7973995246252571240fe712d0876",
+    "Percussion/Snare2-HitSN_v5_rr2_Sum.wav": "1f7ca9367273f7958cfccd5e454c0f30bb471301bc9ee05ef753c6f0423a3798"
+  },
+  "output_sha256": "ddc957bc04f79b17f2b9a9fcd573b6a85c214999fd246744fd612b3364ea70e0"
+}

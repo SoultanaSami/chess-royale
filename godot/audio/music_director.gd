@@ -1,14 +1,15 @@
 class_name MusicDirector
 extends Node
-## Crossfades the violin-led menu score and the quieter tactical match cue.
+## Crossfades the violin-led menu score and the slow percussion-only match cue.
 
 const TRACKS := {
 	"library": "res://audio/music/ashen_crown.ogg",
-	"battle": "res://audio/music/battle_theme.wav",
+	"battle": "res://audio/music/battle_drums.ogg",
 }
-const CUE_VOLUME_DB := {"library": -3.0, "battle": -11.0}
+const CUE_VOLUME_DB := {"library": -3.0, "battle": -0.5}
 const SILENCE_DB := -48.0
 const FADE_SECONDS := 0.9
+const MUSIC_BUS := "Music"
 
 var current_cue := ""
 var _players: Array[AudioStreamPlayer] = []
@@ -18,10 +19,15 @@ var _streams: Dictionary = {}
 
 
 func _ready() -> void:
+	var music_bus := AudioServer.get_bus_index(MUSIC_BUS)
+	if music_bus < 0:
+		music_bus = AudioServer.bus_count
+		AudioServer.add_bus(music_bus)
+		AudioServer.set_bus_name(music_bus, MUSIC_BUS)
 	_fades.resize(2)
 	for _index in range(2):
 		var player := AudioStreamPlayer.new()
-		player.bus = "Master"
+		player.bus = MUSIC_BUS
 		player.volume_db = SILENCE_DB
 		add_child(player)
 		_players.append(player)
@@ -60,7 +66,9 @@ func play_cue(cue: String) -> void:
 	next_player.play()
 	var fade_in := create_tween()
 	_fades[next_index] = fade_in
-	fade_in.tween_property(next_player, "volume_db", CUE_VOLUME_DB[cue], FADE_SECONDS)
+	# Let the opening drum attack arrive intact; screen changes still crossfade.
+	var fade_duration := 0.12 if previous == null else FADE_SECONDS
+	fade_in.tween_property(next_player, "volume_db", CUE_VOLUME_DB[cue], fade_duration)
 	_active_index = next_index
 	current_cue = cue
 

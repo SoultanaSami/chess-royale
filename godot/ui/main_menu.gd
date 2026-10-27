@@ -5,12 +5,18 @@ signal deck_requested
 signal resume_requested
 signal quit_requested
 signal abandon_requested
+signal settings_requested
+signal music_volume_changed(value: float)
+signal settings_closed
 var abandon_button: Button
 var resume_button: Button
 var play_button: Button
 var deck_button: Button
 var title: Label
 var buttons: VBoxContainer
+var settings_panel: PanelContainer
+var music_slider: HSlider
+var music_value: Label
 
 func _ready() -> void:
 	theme = VisualTheme.theme()
@@ -38,7 +44,9 @@ func _ready() -> void:
 	deck_button = menu_button("DECKS",func(): deck_requested.emit())
 	resume_button = menu_button("FORTSETZEN",func(): resume_requested.emit())
 	abandon_button = menu_button("PARTIE AUFGEBEN",func(): abandon_requested.emit())
+	menu_button("EINSTELLUNGEN",func(): show_settings())
 	menu_button("BEENDEN",func(): quit_requested.emit())
+	_build_settings()
 	resized.connect(layout)
 	layout()
 
@@ -76,9 +84,79 @@ func layout() -> void:
 		buttons.position = Vector2(x,maxf(210,size.y-count*60-48))
 		title.position = Vector2(x,maxf(64,minf(size.y*0.24,buttons.position.y-180)))
 		title.add_theme_font_size_override("font_size",28 if size.x < 700 else 44)
+	if settings_panel != null:
+		var panel_width := minf(420.0, size.x - 36.0)
+		settings_panel.position = (size - Vector2(panel_width, 240.0)) * 0.5
+		settings_panel.size = Vector2(panel_width, 240.0)
 	queue_redraw()
 
-func present(can_resume: bool) -> void:
+func _build_settings() -> void:
+	settings_panel = PanelContainer.new()
+	settings_panel.add_theme_stylebox_override("panel", VisualTheme.panel(Color("111416f5"), Color("a17c49"), 5))
+	settings_panel.custom_minimum_size = Vector2(320, 240)
+	settings_panel.hide()
+	settings_panel.z_index = 20
+	add_child(settings_panel)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 18)
+	settings_panel.add_child(content)
+	var heading := VisualTheme.label(content, "EINSTELLUNGEN", 24, Color("ead8b3"), true)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	content.add_child(row)
+	var caption := VisualTheme.label(row, "MUSIK", 15, Color("e7dfca"), true)
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_value = VisualTheme.label(row, "35 %", 15, Color("c7a16a"))
+	music_value.custom_minimum_size.x = 48
+	music_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	music_slider = HSlider.new()
+	music_slider.min_value = 0
+	music_slider.max_value = 100
+	music_slider.step = 1
+	music_slider.custom_minimum_size = Vector2(0, 36)
+	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_slider.value_changed.connect(_on_music_slider_changed)
+	content.add_child(music_slider)
+	var hint := VisualTheme.label(content, "Lautstärke der Musik im Menü und in der Partie", 12, Color("989d9e"))
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(hint)
+	var back := menu_button("ZURÜCK",func():
+		close_settings()
+	)
+	back.custom_minimum_size = Vector2(0, 44)
+	buttons.remove_child(back)
+	content.add_child(back)
+
+func show_settings(current_volume: float = -1.0) -> void:
+	if current_volume >= 0.0:
+		set_music_volume(current_volume)
+	buttons.hide()
+	settings_panel.show()
+	settings_requested.emit()
+
+func close_settings() -> void:
+	settings_panel.hide()
+	buttons.show()
+	settings_closed.emit()
+
+func set_music_volume(value: float) -> void:
+	if music_slider == null:
+		return
+	music_slider.set_value_no_signal(value * 100.0)
+	_update_music_value(music_slider.value)
+
+func _on_music_slider_changed(value: float) -> void:
+	_update_music_value(value)
+	music_volume_changed.emit(value / 100.0)
+
+func _update_music_value(value: float) -> void:
+	music_value.text = "%d %%" % roundi(value)
+
+func present(can_resume: bool, current_volume: float = 0.35) -> void:
+	settings_panel.hide()
+	buttons.show()
+	set_music_volume(current_volume)
 	play_button.text = "NEUES SPIEL" if can_resume else "SPIELEN"
 	resume_button.visible = can_resume
 	abandon_button.visible = can_resume
