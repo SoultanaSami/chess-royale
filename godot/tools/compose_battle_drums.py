@@ -18,6 +18,9 @@ from compose_crown_theme import (
 
 BPM = 64
 BARS = 16
+HIT_STRIDE_BEATS = 2
+DRUM_KEY = 24  # One octave below the CC0 recording's root key.
+DRUM_CLIP_SECONDS = 8
 
 
 def main() -> None:
@@ -26,7 +29,7 @@ def main() -> None:
     parser.add_argument("--cache", type=Path, default=Path.home() / ".cache/schachschlachtfeld/vsco2")
     args = parser.parse_args()
     rng = np.random.default_rng(271027)
-    manifest = {part: bank for part, bank in sample_manifest().items() if part in ("wardrum", "tenor", "snare")}
+    manifest = {part: bank for part, bank in sample_manifest().items() if part == "wardrum"}
     prepare_samples(args.cache, manifest)
     orchestra = Orchestra(args.cache, manifest)
     loop_frames = round(BARS * 4 * 60 / BPM * SR)
@@ -36,22 +39,18 @@ def main() -> None:
     sends = np.zeros_like(dry)
     hits = []
     for bar in range(BARS):
-        # Firm cinematic march: low drum on the heavy beats, resonant answers
-        # between them. Every fourth bar closes with an original short snare roll.
+        # A sparse half-time pulse: one low, unlayered war-drum strike every
+        # two beats, with no tenor or snare accents competing for the attack.
         rise = 1.0 + .08 * np.sin((bar % 8) / 7 * np.pi)
         pattern = [
             (0, "wardrum", 1.20 * rise),
-            (1, "tenor", .78 * rise),
-            (2, "wardrum", 1.00 * rise),
-            (3, "tenor", .82 * rise),
+            (HIT_STRIDE_BEATS, "wardrum", 1.00 * rise),
         ]
-        if bar % 4 == 3:
-            pattern.extend((3 + sub / 4, "snare", .26 + sub * .025) for sub in range(4))
         for beat, part, strength in pattern:
             index = len(hits)
-            key = (34 if bar % 4 in (0, 3) else 36) if part == "wardrum" else (38 if part == "snare" else (43 if bar % 2 else 45))
+            key = DRUM_KEY
             source = orchestra.recording(part, key, "p" if index % 2 == 0 else "rr2").copy()
-            source = source[:(2 if part == "snare" else 4) * SR]
+            source = source[:DRUM_CLIP_SECONDS * SR]
             source[:88] *= np.linspace(0, 1, 88)[:, None]
             tail = min(int(.25 * SR), len(source))
             source[-tail:] *= np.linspace(1, 0, tail)[:, None] ** 2
@@ -77,7 +76,7 @@ def main() -> None:
     loop[limited] = np.sign(loop[limited]) * (.65 + .17 * np.tanh((magnitude[limited] - .65) / .17))
     loop *= 10 ** ((-18.5 - meter.integrated_loudness(loop)) / 20)
     peak = float(np.max(np.abs(loop)))
-    loop *= min(1.0, 10 ** (-2.5 / 20) / peak)
+    loop *= min(1.0, 10 ** (-3.5 / 20) / peak)
     assert np.isfinite(loop).all()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with sf.SoundFile(args.output, mode="w", samplerate=SR, channels=2, format="OGG", subtype="VORBIS") as output:

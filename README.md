@@ -1,5 +1,7 @@
 # Chess Royale
 
+Die aktuelle Godot-Entwicklung zum PC-Taktikspiel steht in [godot/README.md](godot/README.md); der Sitzungsstand in [HANDOFF.md](HANDOFF.md). Die folgende Dokumentation beschreibt das ältere Webprojekt.
+
 Ein mobiles Schachspiel mit Runenmagie, eigenen Figurenvarianten und einer mittelalterlichen Burghalle. Node.js, WebSocket, SQLite und eine PWA ohne Frontend-Buildschritt.
 
 ## Starten

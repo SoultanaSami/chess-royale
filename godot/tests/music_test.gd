@@ -44,6 +44,35 @@ func run() -> void:
 	check(player.stream is AudioStreamOggVorbis and player.playing, "Battle drum loop plays as compressed Vorbis")
 	check(player.stream.get_length() > 59.0 and player.stream.get_length() < 61.0, "Battle drums use a slower 64 BPM march")
 	check(director.CUE_VOLUME_DB.battle > director.CUE_VOLUME_DB.library, "Battle drums are mixed more powerfully than the menu score")
+	var metadata_file := FileAccess.open("res://audio/music/battle_drums.json", FileAccess.READ)
+	check(metadata_file != null, "Battle drum render metadata is available")
+	if metadata_file != null:
+		var metadata: Variant = JSON.parse_string(metadata_file.get_as_text())
+		if metadata is Dictionary:
+			var hits: Array = metadata.get("hits", [])
+			var hits_are_sparse_solo_strikes := hits.size() == 32
+			var first_seconds := -1.0
+			var previous_seconds := -1.0
+			for hit in hits:
+				if not (hit is Dictionary):
+					hits_are_sparse_solo_strikes = false
+					continue
+				var hit_seconds := float(hit.get("seconds", -1.0))
+				if first_seconds < 0.0:
+					first_seconds = hit_seconds
+				elif hit_seconds - previous_seconds < 1.8:
+					hits_are_sparse_solo_strikes = false
+				if str(hit.get("instrument", "")) != "wardrum" or int(hit.get("key", -1)) != 24 or float(hit.get("strength", 0.0)) < .9:
+					hits_are_sparse_solo_strikes = false
+				previous_seconds = hit_seconds
+			var duration := float(metadata.get("duration_seconds", 0.0))
+			if hits.is_empty() or duration - previous_seconds + first_seconds < 1.8:
+				hits_are_sparse_solo_strikes = false
+			check(hits_are_sparse_solo_strikes, "Battle loop uses spaced, octave-lowered solo wardrum strikes")
+			check(float(metadata.get("peak_dbfs", 0.0)) < -1.0, "Battle drum render leaves headroom")
+			check(float(metadata.get("loop_boundary_step", 1.0)) < .01, "Battle drum render preserves a smooth loop seam")
+		else:
+			check(false, "Battle drum render metadata parses")
 	check(absf(player.volume_db - director.CUE_VOLUME_DB.battle) < .05, "Battle drums finish fading in at their stronger level")
 	player.seek(player.stream.get_length() - .15)
 	await create_timer(.45).timeout

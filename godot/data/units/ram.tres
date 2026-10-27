@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/unit_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/ram.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"ram"
+unit_name = "Battering Ram"
+chess_role = 3
+resource_cost = 4
+mesh_prefab = ExtResource("2")
+max_move_range = 4
+attack_range = 4
+ranged = false

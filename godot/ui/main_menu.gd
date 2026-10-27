@@ -1,6 +1,7 @@
 class_name MainMenu
 extends Control
 signal play_requested
+signal tactical_requested
 signal deck_requested
 signal resume_requested
 signal quit_requested
@@ -12,6 +13,7 @@ var abandon_button: Button
 var resume_button: Button
 var play_button: Button
 var deck_button: Button
+var tactical_button: Button
 var title: Label
 var buttons: VBoxContainer
 var settings_panel: PanelContainer
@@ -40,7 +42,8 @@ func _ready() -> void:
 	buttons = VBoxContainer.new()
 	buttons.add_theme_constant_override("separation",12)
 	add_child(buttons)
-	play_button = menu_button("SPIELEN",func(): play_requested.emit())
+	tactical_button = menu_button("TAKTISCHE SCHLACHT",func(): tactical_requested.emit())
+	play_button = menu_button("KLASSISCHES SCHACH",func(): play_requested.emit())
 	deck_button = menu_button("DECKS",func(): deck_requested.emit())
 	resume_button = menu_button("FORTSETZEN",func(): resume_requested.emit())
 	abandon_button = menu_button("PARTIE AUFGEBEN",func(): abandon_requested.emit())
@@ -75,10 +78,12 @@ func layout() -> void:
 		if child.visible:
 			count += 1
 	buttons.size.x = width
+	var gap := 6 if landscape else 12
+	buttons.add_theme_constant_override("separation", gap)
 	if landscape:
 		title.position = Vector2(32,72)
 		title.add_theme_font_size_override("font_size",28)
-		buttons.position = Vector2(size.x-width-24,maxf(12,(size.y-count*60)/2))
+		buttons.position = Vector2(size.x-width-24,maxf(8,(size.y-count*48-maxi(0,count-1)*gap)/2))
 	else:
 		var x := 24.0 if size.x < 700 else 100.0
 		buttons.position = Vector2(x,maxf(210,size.y-count*60-48))
@@ -120,7 +125,6 @@ func _build_settings() -> void:
 	content.add_child(music_slider)
 	var hint := VisualTheme.label(content, "Lautstärke der Musik im Menü und in der Partie", 12, Color("989d9e"))
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(hint)
 	var back := menu_button("ZURÜCK",func():
 		close_settings()
 	)
@@ -157,10 +161,12 @@ func present(can_resume: bool, current_volume: float = 0.35) -> void:
 	settings_panel.hide()
 	buttons.show()
 	set_music_volume(current_volume)
-	play_button.text = "NEUES SPIEL" if can_resume else "SPIELEN"
+	play_button.text = "NEUES SCHACHSPIEL" if can_resume else "KLASSISCHES SCHACH"
 	resume_button.visible = can_resume
 	abandon_button.visible = can_resume
 	deck_button.disabled = can_resume
+	tactical_button.disabled = can_resume
+	tactical_button.tooltip_text = "Laufende Partie zuerst beenden." if can_resume else "Armee wählen und um die Goldminen kämpfen."
 	deck_button.tooltip_text = "Deckbau ist vor der Partie verfügbar. Laufende Partie zuerst beenden." if can_resume else "Startaufstellung bearbeiten."
 	show()
 	layout()

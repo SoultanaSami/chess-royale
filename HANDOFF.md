@@ -4,6 +4,16 @@ Stand: 27. Oktober 2026
 
 Diese Datei ist der sitzungsübergreifende Einstieg für das Projekt. Vor Änderungen erst Status, lokale Diffs und diese Datei lesen. Das Repository enthält sowohl ein älteres Webprojekt als auch das aktive native Godot-Projekt.
 
+## Neuester Auftrag: PC-Taktik-Deckbuilder
+
+Die neue Nutzervorgabe ersetzt für den neuen Modus die bisherige Mobile-/8×8-Ausrichtung: größeres Gelände, fünf Rollen im Reserve-Deck, Ressourcen, 3 CP pro Zug und Burgen mit Garnisonsschilden. Der Nutzer hat ausdrücklich zuerst **UnitData-Architektur und erweitertes Grid** beauftragt; HUD/CP/Siege folgen in weiteren Schritten.
+
+Dieser erste Schritt ist implementiert: Hauptmenü → **TAKTIKFELD** öffnet eine 12×16-Bewegungsprobe mit vier Figuren je Team, Fluss/Übergängen, Felsen, vier neutralen Ressourcenpunkten und zwei Burgen. Beide Armeen sind frei steuerbar; es gibt dort noch keine taktische Partie, KI oder Siegbedingung. 1920×1080 Referenzauflösung, 1440×810 Startfenster; WASD/Randscrollen, Mausrad, mittlere Maustaste und F für Übersicht. 14×18 ist ebenfalls geprüft. Das klassische Spiel bleibt über SPIELEN verfügbar.
+
+Neue Definitionen liegen in [UnitData](godot/data/unit_data.gd) und [units/](godot/data/units/); Gelände in [BattlefieldConfig](godot/data/battlefield_config.gd), [BattlefieldTileData](godot/data/battlefield_tile_data.gd) und [river_crossing.tres](godot/data/battlefields/river_crossing.tres). Die vorhandenen BoardState-/MovementRules-/BoardView-/UnitView-Klassen wurden erweitert und werden gemeinsam genutzt. [TacticalField](godot/domain/tactical_field.gd) führt bestätigte Sandbox-Aktionen aus, [UnitAbility](godot/domain/unit_ability.gd) definiert vier Hooks. Kosten, Knotenertrag und Burgschilde sind Definitions-/Zustandswerte; es gibt noch keinen Ressourcenabzug, Besitzwechsel oder CP-Verbrauch. Fernkampf ist nur als separate Geometrie vorbereitet, nicht als Angriffsbefehl.
+
+Prüfungen nach dem Umbau: **43 Taktik-Daten-/Regeltests, 25 native Taktik-UI-Tests, 427 klassische Regeltests und 380 klassische UI-Tests bestanden.** Vollständige Architektur, Grenzen und nächste Schritte: [TACTICAL_FOUNDATION.md](godot/docs/TACTICAL_FOUNDATION.md). Die alte Musikaufgabe ist aktuell kein offener Arbeitsauftrag.
+
 ## Aktiver Projektbereich
 
 - Godot-Projekt: [`godot/`](./godot/)
@@ -11,7 +21,7 @@ Diese Datei ist der sitzungsübergreifende Einstieg für das Projekt. Vor Änder
 - Engine hier: Godot 4.7.2; ausführbar unter `/Users/samisoultana/Downloads/Godot-2.app/Contents/MacOS/Godot`.
 - Produktspezifikation und Spielregeln: [`godot/README.md`](./godot/README.md). Die genaueren Regeln dort sind maßgeblich; das separate [`STATE.md`](./STATE.md) ist nur für explizite Studio-Zyklen.
 
-## Spielstand und festgelegte Regeln
+## Bestehender klassischer Modus (vor der neuen PC-Taktik-Ausrichtung)
 
 Das Ziel ist ein mobiles, lokales 3D-Schachspiel in mittelalterlicher Bibliotheks-/Kriegsraumoptik. Das Brett ist 8×8. Es gelten normale legale Schachzüge mit Königssicherheit, Rochade, En passant, Umwandlung, Schachmatt, Patt und Aufgabe. Ein legaler Zug pro Seite und normaler unmittelbarer Seitenwechsel. Geschlagene Einheiten werden entfernt. Keine HP, Angriffsschäden, Mana, Upgrades oder Beschwörungen.
 
@@ -33,4 +43,4 @@ Im Arbeitsbaum liegen bereits mehrere Änderungen aus früheren Schritten, darun
 
 ## Sinnvoller nächster Schritt
 
-Die neue Trommelfassung vom Nutzer im Spiel beurteilen lassen. Falls sie noch nicht markant genug ist, zuerst konkret klären, ob mehr Tempo, mehr Basspauken oder häufigere Wirbel gemeint sind; den YouTube-Ton im Chat nicht als selbst abgehört darstellen. Danach nur die Trommelkomposition ändern, Menüthema und Schachregeln unangetastet lassen und Musiktest plus Godot-Import aktualisieren.
+Als nächsten beauftragten Ausbauschritt den taktischen CP-/Ressourcen-Controller und das Fünf-Slot-Reserve-HUD auf der neuen Grundlage aufbauen. Keine normale Schach-Königssicherheit auf die königlose Bewegungsprobe anwenden: Burgen sind Geländeziele, das neue Siege-System wird separat entwickelt. Die früheren Anweisungen gegen Ressourcen/Deployment gelten weiterhin im klassischen Modus, wurden aber durch die neueste Nutzer-Vision für den Taktikmodus ersetzt. Arbeitsbaum und Index enthalten Änderungen mehrerer Sessions; vor Edits prüfen und fremde Arbeit erhalten.

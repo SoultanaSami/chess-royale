@@ -23,7 +23,10 @@ static func tile_mesh() -> ArrayMesh:
 	surface.generate_tangents()
 	return surface.commit()
 
-static func build(parent: Node3D) -> void:
+static func build(parent: Node3D, board: BoardState = null) -> void:
+	if board != null:
+		BattlefieldTerrainView.build(parent, board)
+		return
 	var stone := ModelSculptor.material(Color("363530"),0.03,0.6)
 	var trim := ModelSculptor.material(Color("635846"),0.12,0.5)
 	var brass := ModelSculptor.material(Color("9a7745"),0.72,0.3)

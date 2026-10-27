@@ -75,6 +75,7 @@ func _ready() -> void:
 	main_menu = MainMenu.new()
 	ui_root.add_child(main_menu)
 	main_menu.play_requested.connect(func(): start_match(deck))
+	main_menu.tactical_requested.connect(func(): get_tree().change_scene_to_file("res://scenes/tactical_battlefield.tscn"))
 	main_menu.deck_requested.connect(open_deck)
 	main_menu.resume_requested.connect(resume_match)
 	main_menu.abandon_requested.connect(abandon_match)

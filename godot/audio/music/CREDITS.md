@@ -77,14 +77,19 @@ Godot lädt die fertige OGG-Datei ohne zusätzliche Laufzeitabhängigkeiten.
 ## Partiemusik: Trommeln vor der Schlacht
 
 Während einer Partie läuft [battle_drums.ogg](battle_drums.ogg): ausschließlich
-langsame Bass- und Tenortrommeln, ohne Violine, andere Streicher oder Gesang.
-16 Takte in 4/4 bei 84 BPM ergeben eine etwa 46 Sekunden lange Schleife.
-Ein fester Marschpuls aus tiefen Paukenschlägen und resonanten Antworttrommeln
-trägt den Rhythmus; kurze, sparsame Wirbel bauen an jedem vierten Takt Spannung
-auf. Wechselnde Aufnahmen und kleine Anschlagsvariationen vermeiden einen mechanischen Puls. Der Hall
-des letzten Takts wird an den Schleifenanfang übertragen, damit kein stiller
-Neustart entsteht. Die oben genannten CC0-Aufnahmen aus VSCO 2 CE liefern
-beide Instrumente. Quellen, Anschläge und Pegel stehen in [battle_drums.json](battle_drums.json).
+eine tiefe Kriegstrommel, ohne Violine, andere Streicher oder Gesang. 16 Takte
+in 4/4 bei 64 BPM ergeben eine 60 Sekunden lange Schleife. Ein sparsamer
+Halbtakt-Puls setzt alle zwei Viertel genau einen einzelnen, schweren
+Trommelschlag; zwischen den Anschlägen liegen rund 1,875 Sekunden. Tenor- und
+Snare-Akzente entfallen, damit kein weiterer Schlag mit dem tiefen Hauptpuls
+konkurriert. Das originale CC0-Sample wird eine Oktave tiefer und bis zu acht
+Sekunden lang wiedergegeben. Wechselnde Round-Robin-Aufnahmen und kleine
+Anschlagsvariationen vermeiden einen mechanischen Puls. Sanfte
+Spitzenbegrenzung hält die kräftige Abmischung sauber. Der Hall des letzten
+Takts wird an den Schleifenanfang übertragen, damit kein stiller Neustart
+entsteht. Die oben genannten CC0-Aufnahmen aus VSCO 2 CE liefern die
+Kriegstrommel. Quellen, Anschläge und Pegel stehen in
+[battle_drums.json](battle_drums.json).
 
 Erneut rendern mit denselben Python-Abhängigkeiten:
 

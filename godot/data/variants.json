@@ -10,9 +10,9 @@
   },
   {
     "id": "cavalry",
-    "name": "Thunder Cavalry",
+    "name": "Hellknight",
     "baseChessType": "KNIGHT",
-    "modelAssetPath": "res://assets/models/cavalry.tscn",
+    "modelAssetPath": "res://assets/models/hellknight.tscn",
     "description": "Zieht im L: zwei Felder in eine Richtung und eines quer. Darf über Figuren springen.",
     "rulesStatus": "classical",
     "openRules": "Spezialfähigkeit und ihre Wechselwirkung mit der Königssicherheit sind noch offen."

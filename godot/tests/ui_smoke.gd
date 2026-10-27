@@ -72,6 +72,17 @@ func bare_position() -> void:
 func place(id: String, side: int, cell: Vector2i) -> UnitState:
 	return scene.game.board.spawn(scene.catalog.get_piece(id),side,cell)
 
+func first_body_material(node: Node) -> StandardMaterial3D:
+	if node is MeshInstance3D:
+		var material := (node as MeshInstance3D).material_override as StandardMaterial3D
+		if material != null and not material.emission_enabled:
+			return material
+	for child in node.get_children():
+		var child_material := first_body_material(child)
+		if child_material != null:
+			return child_material
+	return null
+
 func shot(name: String) -> void:
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
@@ -105,6 +116,12 @@ func run() -> void:
 	check(scene.main_menu.visible and scene.game == null,"Save formation returns to menu")
 	await control_click(scene.main_menu.play_button)
 	check(scene.game.board.units.size() == 32 and scene.game.board.at(Vector2i(7,0)).variant_id == "trebuchet","Selected variant appears in full starting army")
+	var team_zero_pawn: UnitState = scene.game.board.at(Vector2i(6,0))
+	var team_one_pawn: UnitState = scene.game.board.at(Vector2i(1,0))
+	var team_zero_body := first_body_material(scene.board_view.units[team_zero_pawn.uid].model)
+	var team_one_body := first_body_material(scene.board_view.units[team_one_pawn.uid].model)
+	check(team_zero_body != null and team_zero_body.albedo_color.r > 0.76 and team_zero_body.albedo_color.g > 0.76 and team_zero_body.albedo_color.b > 0.76,"Team 0 figure body uses white material")
+	check(team_one_body != null and team_one_body.albedo_color.get_luminance() < 0.30 and team_one_body.rim_enabled,"Team 1 figure body uses dark material with rim readability")
 	check(scene.music_director.current_cue == "battle" and scene.music_director.is_playing(),"Battle music starts when a match begins")
 	check(not scene.game.has_method("play_card") and not scene.game.has_method("end_turn"),"No in-match spells, deployment or pass command")
 	scene.open_deck()

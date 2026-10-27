@@ -1,12 +1,24 @@
 # Schachschlachtfeld · Godot
 
-Mobiles 3D-Schach auf **8×8** in einer mittelalterlichen Bibliothek. Der native Godot-Slice ist unabhängig vom älteren Webprojekt im übergeordneten Verzeichnis.
+Aktuelle Richtung: ein **PC-Taktik-Deckbuilder** auf einem größeren Gelände mit Burgen und Ressourcenpunkten. Der erste Ausbauschritt ist spielbar als **TAKTIKFELD** im Hauptmenü: 12×16 Felder, vier Figuren je Seite, freie Auswahl beider Armeen und terrainabhängige Bewegung. Das bestehende klassische 8×8-Schach bleibt über **SPIELEN** erreichbar. Der native Godot-Slice ist unabhängig vom älteren Webprojekt im übergeordneten Verzeichnis.
+
+## PC-Taktik: erster Ausbauschritt
+
+- 1920×1080 Referenzauflösung, 1440×810 Startfenster (16:9). WASD und Randscrollen bewegen die Kamera, Mausrad zoomt, mittlere Maustaste dreht/neigt, F stellt die Übersicht wieder her.
+- Konfigurierbare Abmessungen und Gelände in [river_crossing.tres](data/battlefields/river_crossing.tres): Standard, Fluss, unpassierbare Felsen, neutrale Ressourcenpunkte und Burgen. Ressourcenbesitz, Ertrag und Garnisonsschilde sind als unabhängiger Zustand je Feld vorbereitet.
+- [UnitData](data/unit_data.gd) mit fünf Schachrollen, Kosten, PackedScene und optionalem Ability-Script; sieben konkrete [.tres-Varianten](data/units/). Keine taktischen Königseinheiten: Burgen sind Ziele auf dem Gelände.
+- Bodenfiguren können Wasser/Felsen weder betreten noch durchqueren. Springer überspringen Hindernisse, brauchen aber ein freies bzw. gegnerisch besetztes begehbares Zielfeld. Fernkampfgeometrie ist separat vorbereitet; sie erweitert keine Bodenbewegungen.
+- Hooks für Deployment, Bewegung, Schlagen und Zugende. Die ersten drei werden bei bestätigten Sandbox-Aktionen ausgelöst; Zugende ist eine Schnittstelle für den folgenden CP-Controller. Vorschauen/Simulationen führen keine Fähigkeiten aus.
+
+**Noch nicht umgesetzt:** Fünf-Karten-Reserve-HUD, Rekrutierungszonen/Kostenabzug, CP-Züge, Einnahmen und Einnahmewechsel von Ressourcenpunkten, Formationsbefehle, Turn-Timer, Siege-/Schachmattlogik für Burgen, tatsächliche Spezialfähigkeiten oder Fernkampfbefehle. Die angezeigten Kosten sind vorläufige Definitionswerte. Der Geländetest ist noch keine taktische Partie mit Siegbedingung.
+
+[Architektur, Datenverträge und nächste Schritte](docs/TACTICAL_FOUNDATION.md).
 
 ## Start
 
 [Launch.command](Launch.command) startet die vorhandene Godot-Installation. Alternativ [project.godot](project.godot) in Godot 4.7.2 importieren und F5 drücken. Eine andere Installation lässt sich über `GODOT_BIN` auswählen.
 
-## Festgelegte Spielregeln
+## Bestehender klassischer Modus: Spielregeln
 
 - **Ein legaler Figurenzug pro Seite.** Danach wechselt die Seite unmittelbar; Animationen oder KI-Timer verändern die Regeln nicht. Es gibt weder eine zweite Aktion noch einen Knopf zum Überspringen des Zuges.
 - Ein Schlag entfernt die gegnerische Figur sofort. Es gibt keine HP, Angriffsschäden, Rüstung, verwundeten Einheiten, Mana, Upgrades oder Level.
@@ -87,6 +99,11 @@ Beim Start einer Partie blendet [music_director.gd](audio/music_director.gd) zur
 
 Die Regeltests prüfen Referenz-Zugbaumzahlen (Startstellung 20/400/8902, Kiwipete 48/2039, Turm-Bauern-Endspiel 2812 auf Tiefe 3), Königssicherheit, beidseitige Rochaden und Rechteverlust, En passant einschließlich Selbstschach, alle vier Umwandlungen, sofortiges Schlagen, Matt/Patt/Aufgabe und KI-Zugwechsel. Die UI-Prüfung bedient die echte Szene per Maus/Touch, prüft den Musikwechsel zwischen Menü und Partie und verändert die Fenstergröße; währenddessen nicht in das Testfenster klicken.
 
-**Aktuell verifiziert:** 427 Regelprüfungen und 376 Oberflächenprüfungen bestanden, einschließlich 390×844, 844×390, 360×800, 375×667 und 360×640.
+**Nach dem Taktik-Umbau verifiziert:** 427 klassische Regelprüfungen, 380 klassische Oberflächenprüfungen, 43 Taktik-Daten-/Regelprüfungen und 25 Taktik-Oberflächenprüfungen bestanden. Die neuen Prüfungen decken 12×16/14×18, Gelände, isolierte Zustandskopien, Ability-Hooks, Mausauswahl, Bewegung, Kamera und Menüwechsel ab. Die klassische Oberfläche wurde einschließlich 390×844, 844×390, 360×800, 375×667 und 360×640 geprüft.
+
+```sh
+"$GODOT_BIN" --headless --path . --script res://tests/tactical_field_test.gd
+"$GODOT_BIN" --path . --script res://tests/tactical_view_smoke.gd
+```
 
 Die Smartphone-Prüfungen laufen in Godot-Fenstern auf dem Mac. Physische Android-/iOS-Geräte und installierbare Mobil-Builds sind noch nicht verifiziert. Der Slice hat einen lokalen Gegner, keinen Netzwerkmodus und keinen Match-Speicher. Wiederholungs-/50-Züge-Remisverfahren und automatische Remiserkennung bei toten Stellungen sind noch nicht umgesetzt; Matt und Patt werden erkannt.

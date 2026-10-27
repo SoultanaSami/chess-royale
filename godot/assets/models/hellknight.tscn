@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/hellknight.glb" id="1"]
+
+[node name="Hellknight" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]
+position = Vector3(0, 0.43533, 0)
+scale = Vector3(0.6, 0.6, 0.6)
