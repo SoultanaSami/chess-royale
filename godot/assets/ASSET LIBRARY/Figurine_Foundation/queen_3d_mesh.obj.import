@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bismjkxewekuf"
+path="res://.godot/imported/queen_3d_mesh.obj-88cc061525f1c24bb4d1ad889404daa1.mesh"
+
+[deps]
+
+files=["res://.godot/imported/queen_3d_mesh.obj-88cc061525f1c24bb4d1ad889404daa1.mesh"]
+
+source_file="res://assets/ASSET LIBRARY/Figurine_Foundation/queen_3d_mesh.obj"
+dest_files=["res://.godot/imported/queen_3d_mesh.obj-88cc061525f1c24bb4d1ad889404daa1.mesh", "res://.godot/imported/queen_3d_mesh.obj-88cc061525f1c24bb4d1ad889404daa1.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
