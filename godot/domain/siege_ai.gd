@@ -43,11 +43,13 @@ static func choose(game: TacticalMatch) -> Dictionary:
 					continue
 				var distances: Dictionary = fields[game.board.at(from).chess_type]
 				score += (float(distances.get(from, 1000)) - float(distances.get(to, 1000))) * 3.5
-				var tile := game.board.tile_at(to)
-				if tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE and tile.owner != side:
-					score += 55.0
-				if game.board.tile_at(from).terrain == BattlefieldTileData.Terrain.RESOURCE_NODE:
-					score -= 45.0
+				for anchor in game.board.objectives(BattlefieldTileData.Terrain.RESOURCE_NODE):
+					var ring := game.board.capture_ring(anchor)
+					var owner := game.board.tile_at(anchor).owner
+					if to in ring and owner != side:
+						score += 55.0 if side not in game.board.ring_teams(anchor) else 6.0
+					if from in ring and to not in ring and owner != side:
+						score -= 45.0
 				var mover := game.board.at(from)
 				if mover.position_history.size() >= 2 and to == mover.position_history[-2]:
 					score -= 18.0
@@ -61,12 +63,14 @@ static func choose(game: TacticalMatch) -> Dictionary:
 static func objective_distances(board: BoardState, side: int, role: String) -> Dictionary:
 	var distance: Dictionary = {}
 	var queue: Array[Vector2i] = []
-	for cell in board.tiles:
-		var tile := board.tile_at(cell)
-		if tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE and tile.owner != side and (board.at(cell) == null or board.at(cell).team != side):
-			queue.append(cell)
+	for anchor in board.objectives(BattlefieldTileData.Terrain.RESOURCE_NODE):
+		var occupants := board.ring_teams(anchor)
+		if board.tile_at(anchor).owner != side and not (occupants.size() == 1 and occupants[0] == side):
+			for cell in board.capture_ring(anchor):
+				if board.at(cell) == null or board.at(cell).team != side:
+					queue.append(cell)
 	if queue.is_empty():
-		queue.append(TacticalCommands.castle(board, 1 - side))
+		queue.append_array(board.footprint(TacticalCommands.castle(board, 1 - side)))
 	for cell in queue:
 		distance[cell] = 0
 	var index := 0

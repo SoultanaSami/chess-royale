@@ -53,7 +53,7 @@ func legal_targets(cell: Vector2i) -> Array[Vector2i]:
 func deploy_targets(slot: int, side: int) -> Array[Vector2i]:
 	if not can_act(side) or slot < 0 or slot >= 5 or catalog.get_unit(reserves[side][slot]).resource_cost > gold[side]:
 		return []
-	return TacticalCommands.deployment_cells(board, side)
+	return TacticalCommands.deployment_cells(board, side, catalog.get_unit(reserves[side][slot]).chess_type())
 
 func execute(action: Dictionary, side: int) -> bool:
 	if not can_act(side):
@@ -75,15 +75,17 @@ func execute(action: Dictionary, side: int) -> bool:
 
 func income(side: int) -> int:
 	var amount := config.base_income
-	for tile in board.tiles.values():
-		if tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE and tile.owner == side:
+	for anchor in board.objectives(BattlefieldTileData.Terrain.RESOURCE_NODE):
+		var tile := board.tile_at(anchor)
+		if tile.owner == side:
 			amount += tile.resource_yield
 	return amount
 
 func mines_owned(side: int) -> int:
 	var count := 0
-	for tile in board.tiles.values():
-		if tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE and tile.owner == side:
+	for anchor in board.objectives(BattlefieldTileData.Terrain.RESOURCE_NODE):
+		var tile := board.tile_at(anchor)
+		if tile.owner == side:
 			count += 1
 	return count
 
@@ -92,10 +94,10 @@ func end_turn(side: int) -> bool:
 		return reject("Zug kann gerade nicht beendet werden.")
 	phase = Phase.RESOLVING
 	field.notify_turn_end(side)
-	for unit in board.units.values():
-		var tile := board.tile_at(unit.cell)
-		if unit.team == side and tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE:
-			tile.owner = side
+	for anchor in board.objectives(BattlefieldTileData.Terrain.RESOURCE_NODE):
+		var occupants := board.ring_teams(anchor)
+		if occupants.size() == 1 and occupants[0] == side:
+			board.tile_at(anchor).owner = side
 	var castle_tile := board.tile_at(TacticalCommands.castle(board, side))
 	if not TacticalCommands.threats(board, side).is_empty():
 		castle_tile.garrison_shields -= 1

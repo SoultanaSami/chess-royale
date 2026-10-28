@@ -51,7 +51,7 @@ func run() -> void:
 	check(MovementRules.pseudo_targets(board, pawn).is_empty(), "Pawn cannot jump over terrain on double step")
 	var knight := board.spawn(catalog.get_unit("cavalry"), 0, Vector2i(13, 7))
 	check(Vector2i(11, 8) in MovementRules.pseudo_targets(board, knight), "Knight jumps intervening river")
-	check(Vector2i(12, 9) in MovementRules.pseudo_targets(board, knight), "Knight reaches clear landing")
+	check(Vector2i(12, 5) in MovementRules.pseudo_targets(board, knight), "Knight reaches clear landing")
 	board.tile_at(Vector2i(11, 8)).terrain = BattlefieldTileData.Terrain.RIVER
 	check(Vector2i(11, 8) not in MovementRules.pseudo_targets(board, knight), "Knight cannot land in water")
 	board = BoardState.new(12, 16)

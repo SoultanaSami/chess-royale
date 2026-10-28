@@ -25,7 +25,11 @@ var selected_info: Label
 var message: Label
 var end_button: Button
 var shoot_button: Button
-var footer: PanelContainer
+var footer: Control
+var left_crest: TacticalCrest
+var right_crest: TacticalCrest
+var command_column: VBoxContainer
+var help_label: Label
 var deck_layer: ColorRect
 var pause_layer: ColorRect
 var outcome_layer: ColorRect
@@ -41,72 +45,50 @@ func build(data: TacticalCatalog, pictures: Dictionary, deck: Array) -> void:
 	theme = VisualTheme.theme()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var top := PanelContainer.new()
-	add_child(top)
-	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	top.offset_left = 16
-	top.offset_right = -16
-	top.offset_top = 12
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 22)
-	top.add_child(header)
-	status = VisualTheme.label(header, "", 17, VisualTheme.CREAM)
-	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	enemy_status = VisualTheme.label(header, "", 15, Color("e0a092"))
-	clock_label = VisualTheme.label(header, "", 16, VisualTheme.GOLD)
-	button(header, "MENÜ · ESC", func(): pause_requested.emit())
-	footer = PanelContainer.new()
+	left_crest = TacticalCrest.new()
+	left_crest.size = Vector2(340,122)
+	add_child(left_crest)
+	status = left_crest.caption
+	right_crest = TacticalCrest.new()
+	right_crest.economy = false
+	right_crest.size = Vector2(318,112)
+	add_child(right_crest)
+	enemy_status = right_crest.caption
+	enemy_status.add_theme_font_size_override("font_size",12)
+	enemy_status.add_theme_constant_override("line_spacing",28)
+	enemy_status.size = Vector2(194,90)
+	clock_label = VisualTheme.label(self,"",16,VisualTheme.GOLD)
+	var menu := button(self,"MENÜ · ESC",func(): pause_requested.emit())
+	menu.name = "PauseButton"
+	menu.custom_minimum_size = Vector2(134,36)
+	footer = Control.new()
+	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(footer)
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
-	footer.add_child(content)
-	selected_info = VisualTheme.label(content, "", 14, VisualTheme.CREAM)
-	var hand := HBoxContainer.new()
-	hand.add_theme_constant_override("separation", 8)
-	content.add_child(hand)
+	selected_info = VisualTheme.label(self,"",13,VisualTheme.CREAM)
+	selected_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	selected_info.add_theme_color_override("font_shadow_color",Color.BLACK)
+	selected_info.add_theme_constant_override("shadow_offset_y",2)
+	message = VisualTheme.label(self,"",14,VisualTheme.GOLD)
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.add_theme_color_override("font_shadow_color",Color.BLACK)
+	message.add_theme_constant_override("shadow_offset_y",2)
 	for slot in range(5):
 		var card := ReserveCard.new()
 		card.slot = slot
-		card.toggle_mode = true
-		card.custom_minimum_size = Vector2(150, 126)
-		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.size = Vector2(154,210)
 		card.pressed.connect(func(): slot_selected.emit(slot))
 		card.drag_started.connect(func(index): slot_selected.emit(index))
-		hand.add_child(card)
+		footer.add_child(card)
 		cards.append(card)
-		var rows := VBoxContainer.new()
-		rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card.add_child(rows)
-		rows.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		rows.offset_left = 8
-		rows.offset_right = -8
-		rows.offset_top = 6
-		rows.offset_bottom = -6
-		var name_label := VisualTheme.label(rows, "[%d] %s" % [slot + 1, ROLES[slot]], 12, VisualTheme.GOLD, true)
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var picture := TextureRect.new()
-		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		picture.custom_minimum_size = Vector2(0, 58)
-		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		rows.add_child(picture)
-		portraits.append(picture)
-		var title := VisualTheme.label(rows, "", 11)
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card_names.append(title)
-		var cost := VisualTheme.label(rows, "", 13, VisualTheme.GOLD)
-		cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card_costs.append(cost)
-	var commands := VBoxContainer.new()
-	commands.custom_minimum_size.x = 154
-	hand.add_child(commands)
-	end_button = button(commands, "ZUG BEENDEN\nLEERTASTE", func(): end_requested.emit())
-	end_button.custom_minimum_size.y = 72
-	shoot_button = button(commands, "FERNANGRIFF · R", func(): shoot_requested.emit())
+	command_column = VBoxContainer.new()
+	command_column.add_theme_constant_override("separation",10)
+	footer.add_child(command_column)
+	end_button = button(command_column,"ZUG BEENDEN\nLEERTASTE",func(): end_requested.emit())
+	end_button.custom_minimum_size = Vector2(142,70)
+	shoot_button = button(command_column,"FERNANGRIFF · R",func(): shoot_requested.emit())
 	shoot_button.toggle_mode = true
-	message = VisualTheme.label(content, "", 13, VisualTheme.GOLD)
-	var help := VisualTheme.label(content, "1–5 / Karte ziehen: Rekrutieren  ·  Shift-Klick / Auswahlrahmen: Bauernreihe  ·  G: Formation vor  ·  WASD / Rand: Kamera  ·  Mausrad / MMT: Zoom / Drehen  ·  F: Übersicht", 11, VisualTheme.MUTED)
-	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help_label = VisualTheme.label(self,"1–5 / Ziehen: Rekrutieren  ·  Shift / Rahmen: Formation  ·  G: Vorrücken  ·  WASD / Rand: Kamera  ·  Mausrad / MMT: Zoom / Drehen  ·  F: Übersicht",11,VisualTheme.MUTED)
+	help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	build_deck()
 	build_pause()
 	var outcome := overlay()
@@ -176,7 +158,7 @@ func build_deck() -> void:
 			chosen[role] = str(options.get_item_metadata(index))
 			picture.texture = textures.get(chosen[role])
 		)
-	var rules := VisualTheme.label(box, "Jeder Zug: 3 KP. Bewegen, Rekrutieren, Schießen oder eine Bauernreihe vorrücken kostet 1 KP.\nRekrutierung kostet zusätzlich Gold und ist neben deiner Burg möglich. Neu rekrutierte Figuren dürfen sofort handeln.\nBesetze Goldminen am Zugende: Naturminen liefern +2 Gold, die drei umkämpften Minen +3. Deine Burg liefert +2.\nBelagerte Burg: Löse die Bedrohung oder verliere am Zugende einen Schild. Drei verlorene Schilde oder Matt bedeuten Niederlage.\nBauern ziehen bis 2, Läufer 3, Türme und Damen bis 4 Felder. Wald kostet 2 Bewegungspunkte; Türme meiden ihn.\nKlippengrenzen brauchen Rampen. Läufer auf Hochland schießen diagonal 4 Felder; Angriffe bergauf brauchen einen eigenen Späher oben.\nBauern werden am gegenüberliegenden Kartenrand zur Dame. Du kämpfst gegen einen lokalen Gegner.", 14)
+	var rules := VisualTheme.label(box, "Jeder Zug: 3 KP. Bewegen, Rekrutieren, Schießen oder eine Bauernreihe vorrücken kostet 1 KP.\nRekrutierung kostet zusätzlich Gold und ist neben deiner Burg möglich. Neu rekrutierte Figuren dürfen sofort handeln.\nBesetze den freien Eroberungsring einer Goldmine am Zugende ohne Gegner im Ring: Naturminen liefern +2 Gold, die drei umkämpften Minen +3. Deine Burg liefert +2.\nBelagerte Burg: Löse die Bedrohung oder verliere am Zugende einen Schild. Drei verlorene Schilde oder Matt bedeuten Niederlage.\nBauern ziehen bis 2, Läufer 3, Türme und Damen bis 4 Felder. Wald kostet 2 Bewegungspunkte; Türme meiden ihn.\nKlippengrenzen brauchen Rampen. Läufer auf Hochland schießen diagonal 4 Felder; Angriffe bergauf brauchen einen eigenen Späher oben.\nBauern werden am gegenüberliegenden Kartenrand zur Dame. Du kämpfst gegen einen lokalen Gegner.", 14)
 	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button(box, "SCHLACHT BEGINNEN", func(): start_requested.emit(chosen.duplicate()))
 	button(box, "ZURÜCK", func(): menu_requested.emit())
@@ -200,26 +182,39 @@ func build_pause() -> void:
 	pause_layer.hide()
 
 func layout() -> void:
-	if footer == null:
-		return
-	var width := minf(1120, size.x - 32)
-	footer.size = Vector2(width, 222)
-	footer.position = Vector2((size.x - width) * .5, size.y - footer.size.y - 12)
+	if footer == null: return
+	left_crest.position = Vector2(18,16)
+	right_crest.position = Vector2(size.x-right_crest.size.x-18,16)
+	get_node("PauseButton").position = Vector2(size.x-158,138)
+	clock_label.position = Vector2(size.x*.5-20,22)
+	var width := minf(1150,size.x-32)
+	footer.size = Vector2(width,246)
+	footer.position = Vector2((size.x-width)*.5,size.y-260)
+	var card_width := clampf((width-245)/5,118,154)
+	var hand_width := card_width*5+12*4
+	for i in range(5):
+		cards[i].size = Vector2(card_width,210)
+		cards[i].home = Vector2((width-hand_width)*.5+i*(card_width+12),25)
+	command_column.position = Vector2((width+hand_width)*.5+16,80)
+	selected_info.position = Vector2(16,footer.position.y-42)
+	selected_info.size = Vector2(size.x-32,22)
+	message.position = Vector2(16,footer.position.y-69)
+	message.size = Vector2(size.x-32,22)
+	help_label.position = Vector2(12,size.y-24)
+	help_label.size.x = size.x-24
 
 func sync(game: TacticalMatch, selected_slot: int, selected: UnitState, shooting: bool, ready: bool) -> void:
 	update_clock(game)
-	status.text = "RUNDE %d · %s\nGold %d (+%d)   ·   KP %d/%d   ·   Goldminen %d" % [game.round_number, "DEIN ZUG" if game.turn == 0 else "GEGNER AM ZUG", game.gold[0], game.income(0), game.cp if game.turn == 0 else 0, game.config.max_cp, game.mines_owned(0)]
-	var ours := game.board.tile_at(TacticalCommands.castle(game.board, 0)).garrison_shields
-	var theirs := game.board.tile_at(TacticalCommands.castle(game.board, 1)).garrison_shields
-	enemy_status.text = "Deine Burg %d/3%s\nGegnerburg %d/3%s" % [ours, " · BELAGERT!" if game.siege[0] else "", theirs, " · BELAGERT!" if game.siege[1] else ""]
+	status.text = "RUNDE %d · %s" % [game.round_number,"DEIN ZUG" if game.turn==0 else "GEGNER AM ZUG"]
+	left_crest.update_economy(game.gold[0],game.income(0),game.mines_owned(0),game.cp if game.turn==0 else 0,game.config.max_cp)
+	var ours := game.board.tile_at(TacticalCommands.castle(game.board,0)).garrison_shields
+	var theirs := game.board.tile_at(TacticalCommands.castle(game.board,1)).garrison_shields
+	right_crest.shields = [ours,theirs]
+	enemy_status.text = "DEINE BURG%s\nGEGNERBURG%s" % [" · BELAGERT" if game.siege[0] else ""," · BELAGERT" if game.siege[1] else ""]
 	for slot in range(5):
 		var data := game.catalog.get_unit(game.reserves[0][slot])
-		cards[slot].disabled = not ready or game.deploy_targets(slot, 0).is_empty()
-		cards[slot].set_pressed_no_signal(slot == selected_slot)
-		cards[slot].tooltip_text = "%s\n%d Gold + 1 KP · neben deiner Burg rekrutieren" % [data.unit_name, data.resource_cost]
-		card_names[slot].text = data.unit_name
-		card_costs[slot].text = "%d GOLD · 1 KP" % data.resource_cost
-		portraits[slot].texture = textures.get(str(data.id))
+		if cards[slot].data != data: cards[slot].configure(data,textures.get(str(data.id)))
+		cards[slot].set_state(ready and not game.deploy_targets(slot,0).is_empty(),slot==selected_slot)
 	end_button.disabled = not ready or game.finished or game.turn != 0
 	shoot_button.disabled = not ready or selected == null or selected.team != 0 or selected.definition.ranged_attack_range == 0 or not game.can_act(0)
 	shoot_button.set_pressed_no_signal(shooting)
@@ -229,7 +224,7 @@ func sync(game: TacticalMatch, selected_slot: int, selected: UnitState, shooting
 	else:
 		selected_info.text = "Reservekarte wählen oder eigene Figur anklicken."
 
-	message.text = game.last_event if game.cp > 0 else "Keine KP mehr — Zug mit Leertaste beenden."
+	message.text = "" if game.cp > 0 else "Keine KP mehr — Zug mit Leertaste beenden."
 	if game.siege[0]:
 		message.text = "DEINE BURG WIRD BELAGERT — Angreifer schlagen oder Angriffslinie blockieren!"
 	if game.finished:

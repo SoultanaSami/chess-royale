@@ -21,12 +21,9 @@ static func quad(tool: SurfaceTool, points: Array[Vector3], faces: Array[Vector3
 		faces.append(points[index])
 
 static func build(parent: Node3D, board: BoardState) -> void:
-	var grass := ShaderMaterial.new()
-	grass.shader = load("res://shaders/battlefield_ground.gdshader")
-	var road := grass.duplicate() as ShaderMaterial
-	road.set_shader_parameter("road", true)
-	var cliff := ShaderMaterial.new()
-	cliff.shader = load("res://shaders/cliff.gdshader")
+	var grass := BattleAtmosphere.stone_material()
+	var road := BattleAtmosphere.stone_material(true)
+	var cliff := BattleAtmosphere.stone_material(false, true)
 	var rock := ModelSculptor.material(Color("424943"), 0, .95)
 	var wood := ModelSculptor.material(Color("33281e"), .05, .9)
 	var dark := ModelSculptor.material(Color("101719"), 0, 1)
@@ -62,49 +59,26 @@ static func build(parent: Node3D, board: BoardState) -> void:
 				quad(surfaces[2], wall, faces)
 				counts[2] += 1
 		if tile.forest: tree(parent, p + Vector3(.24,0,-.27), 1.0, wood)
-		match tile.terrain:
-			BattlefieldTileData.Terrain.IMPASSABLE:
-				for i in range(3):
-					ModelSculptor.box(parent, Vector3(.7 - i * .12, .28, .25), p + Vector3(.12 * i, .2 + i * .24, -.14), rock, Vector3(0,.3,.03*i))
-			BattlefieldTileData.Terrain.RESOURCE_NODE:
-				for x in [-.33, .33]:
-					boulder(parent, p + Vector3(x, .26, -.22), Vector3(.38, .65, .50), rock)
-				ModelSculptor.box(parent, Vector3(.44, .48, .12), p + Vector3(0, .28, -.33), dark)
-				for x in [-.24, .24]:
-					ModelSculptor.box(parent, Vector3(.08, .54, .10), p + Vector3(x, .3, -.2), wood)
-				ModelSculptor.box(parent, Vector3(.62, .10, .16), p + Vector3(0, .59, -.22), wood)
-				boulder(parent, p + Vector3(0, .68, -.3), Vector3(.7, .3, .48), rock)
-				for x in [-.15, .15]:
-					ModelSculptor.box(parent, Vector3(.025, .025, .67), p + Vector3(x, .08, .16), wood)
-				ModelSculptor.box(parent, Vector3(.28, .17, .24), p + Vector3(.27, .16, .2), wood)
-				for i in range(3):
-					boulder(parent, p + Vector3(.18 + i * .065, .3, .19), Vector3(.12, .12, .12), ore)
-				markers[cell] = objective(parent, p, tile.terrain)
-			BattlefieldTileData.Terrain.CASTLE:
-				ModelSculptor.box(parent, Vector3(1.0, .15, 1.0), p + Vector3(0, .12, 0), rock)
-				for x in [-.36, .36]:
-					for z in [-.36, .36]:
-						ModelSculptor.cylinder(parent, .16, .20, .9, p + Vector3(x, .57, z), rock, 8)
-						for corner in [-1, 1]:
-							ModelSculptor.box(parent, Vector3(.12, .18, .30), p + Vector3(x + corner * .11, 1.08, z), rock)
-				for x in [-.4, .4]:
-					ModelSculptor.box(parent, Vector3(.13, .5, .8), p + Vector3(x, .43, 0), rock)
-				ModelSculptor.box(parent, Vector3(.6, .55, .11), p + Vector3(0, .43, .36), rock)
-				ModelSculptor.box(parent, Vector3(.23, .37, .13), p + Vector3(0, .33, .39), wood)
-				markers[cell] = objective(parent, p, tile.terrain)
-
-		if tile.terrain in [BattlefieldTileData.Terrain.RESOURCE_NODE, BattlefieldTileData.Terrain.CASTLE]:
-			var torch := CandleProp.new()
-			parent.add_child(torch)
-			torch.position = p + Vector3(.46, .1, -.4)
-			torch.energy = 2.7
-			torch.build(.65, .10, cell.x*32+cell.y, true)
+		if tile.terrain == BattlefieldTileData.Terrain.IMPASSABLE:
+			for i in range(3):
+				ModelSculptor.box(parent,Vector3(.7-i*.12,.28,.25),p+Vector3(.12*i,.2+i*.24,-.14),rock,Vector3(0,.3,.03*i))
+	for anchor in board.buildings:
+		var view := ObjectiveView.new()
+		parent.add_child(view)
+		var config: BattlefieldConfig = parent.get("battlefield_config")
+		var prefab: PackedScene = null
+		if config != null:
+			prefab = config.castle_prefab if board.tile_at(anchor).terrain == BattlefieldTileData.Terrain.CASTLE else config.mine_prefab
+		view.setup(board,anchor,prefab)
+		markers[anchor] = view
 	parent.set_meta("objective_markers", markers)
 	var materials: Array[Material] = [grass, road, cliff, water]
 	for i in range(surfaces.size()):
 		if counts[i] == 0: continue
 		var mesh := surfaces[i].commit()
-		if mesh != null: ModelSculptor.mesh(parent, mesh, Vector3.ZERO, materials[i])
+		if mesh != null:
+			var instance := ModelSculptor.mesh(parent,mesh,Vector3.ZERO,materials[i])
+			instance.gi_mode = GeometryInstance3D.GI_MODE_STATIC
 	var body := StaticBody3D.new()
 	body.collision_layer = 2
 	body.collision_mask = 0

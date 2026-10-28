@@ -1,18 +1,21 @@
 # Schachschlachtfeld · Godot
 
-Aktuelle Richtung: ein **PC-Taktik-Deckbuilder** auf einem größeren Gelände mit Burgen und Ressourcenpunkten. Der erste Ausbauschritt ist spielbar als **TAKTIKFELD** im Hauptmenü: 12×16 Felder, vier Figuren je Seite, freie Auswahl beider Armeen und terrainabhängige Bewegung. Das bestehende klassische 8×8-Schach bleibt über **SPIELEN** erreichbar. Der native Godot-Slice ist unabhängig vom älteren Webprojekt im übergeordneten Verzeichnis.
+Ein PC-Taktik-Deckbuilder mit Reserve-Armee, Goldminen und Burgbelagerungen. Der native Godot-Vertical-Slice ist unabhängig vom älteren Webprojekt im übergeordneten Verzeichnis.
 
-## PC-Taktik: erster Ausbauschritt
+## PC-Taktik: spielbarer Vertical Slice
 
-- 1920×1080 Referenzauflösung, 1440×810 Startfenster (16:9). WASD und Randscrollen bewegen die Kamera, Mausrad zoomt, mittlere Maustaste dreht/neigt, F stellt die Übersicht wieder her.
-- Konfigurierbare Abmessungen und Gelände in [river_crossing.tres](data/battlefields/river_crossing.tres): Standard, Fluss, unpassierbare Felsen, neutrale Ressourcenpunkte und Burgen. Ressourcenbesitz, Ertrag und Garnisonsschilde sind als unabhängiger Zustand je Feld vorbereitet.
-- [UnitData](data/unit_data.gd) mit fünf Schachrollen, Kosten, PackedScene und optionalem Ability-Script; sieben konkrete [.tres-Varianten](data/units/). Keine taktischen Königseinheiten: Burgen sind Ziele auf dem Gelände.
-- Bodenfiguren können Wasser/Felsen weder betreten noch durchqueren. Springer überspringen Hindernisse, brauchen aber ein freies bzw. gegnerisch besetztes begehbares Zielfeld. Fernkampfgeometrie ist separat vorbereitet; sie erweitert keine Bodenbewegungen.
-- Hooks für Deployment, Bewegung, Schlagen und Zugende. Die ersten drei werden bei bestätigten Sandbox-Aktionen ausgelöst; Zugende ist eine Schnittstelle für den folgenden CP-Controller. Vorschauen/Simulationen führen keine Fähigkeiten aus.
+**TAKTISCHE SCHLACHT** öffnet die Deckauswahl und anschließend eine vollständige lokale Partie gegen die KI auf **24×32 Feldern**. Die Aschenklippen haben diagonale Hochlandbasen, Rampen, zwei Naturminen und drei umkämpfte Erweiterungen. Das klassische 8×8-Spiel bleibt separat unter **KLASSISCHES SCHACH** verfügbar.
 
-**Noch nicht umgesetzt:** Fünf-Karten-Reserve-HUD, Rekrutierungszonen/Kostenabzug, CP-Züge, Einnahmen und Einnahmewechsel von Ressourcenpunkten, Formationsbefehle, Turn-Timer, Siege-/Schachmattlogik für Burgen, tatsächliche Spezialfähigkeiten oder Fernkampfbefehle. Die angezeigten Kosten sind vorläufige Definitionswerte. Der Geländetest ist noch keine taktische Partie mit Siegbedingung.
+- Fünf rollenfeste Reservekarten, Bedienung per 1–5, Klick oder Drag-and-drop. Drei KP pro Zug; Bewegung, Rekrutierung, Fernangriff oder eine zusammenhängende Bauernreihe kosten je einen KP. Rekrutierung kostet zusätzlich Gold.
+- 10 Startgold, 2 Grundeinkommen pro weiterem eigenen Zug und je Mine +2 beziehungsweise +3. Goldminen und Burgen sind **solide 2×2-Gebäude**. Eine Mine wird am eigenen Zugende durch ihren freien Randbereich erobert, solange kein Gegner ebenfalls im Ring steht. Einkommen wird einmal pro Gebäude gezählt.
+- Bewegungsreichweiten: Bauer 1–2 vorwärts, Springer ein L-Sprung (Dawn Riders zwei), Läufer 3 diagonal, Turm 4 orthogonal, Dame 4. Wald kostet zwei Bewegungspunkte; Türme meiden ihn. Klippen benötigen Rampen. Hochland-Läufer erhalten einen diagonalen Fernkampfschritt zusätzlich; Angriffe bergauf brauchen Aufklärung.
+- Belagerte Burgen sind markiert. Bleibt die Bedrohung am eigenen Zugende bestehen, geht ein Garnisonsschild verloren. Drei verlorene Schilde oder bewiesenes taktisches Matt beenden das Spiel. Aufgeben, Pause und Neustart sind vorhanden. Ein optionaler Zugtimer ist über die Kartenkonfiguration aktivierbar, standardmäßig unbegrenzt.
+- WASD/Randscrollen, Mausrad und mittlere Maustaste steuern die nahe RTS-Kamera; F zeigt die Übersicht. G bewegt eine ausgewählte Bauernreihe, R aktiviert Fernangriffe, Leertaste beendet den Zug.
+- **Forward+**: SDFGI, SSAO, volumetrischer Nebel, Bloom, ACES, Mitternachtshimmel, Wasserabgrund, triplanare Stein-/Normaltexturen und flackernde Gebäudefackeln mit GPU-Partikeln. Keine dauerhaften Gitternetzlinien; lokale cyanfarbene und rote Zieldekale.
+- Auswahl hebt die Figur an, Bewegung springt und landet mit Staub und kurzem Kamerastoß. Die fünf freien Tarotkarten haben große Porträts, Goldkosten-Gemmen, Hover-Animation und deaktivierte Zustände; kompakte Metallwappen zeigen Gold, KP und Burgschilde.
+- Die bereitgestellte GLB ist als **Ironbound Knight** auswählbar, inklusive ihres eigenen Sockels. Mine-/Burgmodelle lassen sich über `mine_prefab` / `castle_prefab` in der Kartenkonfiguration in die vorbereiteten Modellhalterungen einsetzen.
 
-[Architektur, Datenverträge und nächste Schritte](docs/TACTICAL_FOUNDATION.md).
+[Architektur, Datenverträge und Asset-Integration](docs/TACTICAL_FOUNDATION.md).
 
 ## Start
 
@@ -99,11 +102,15 @@ Beim Start einer Partie blendet [music_director.gd](audio/music_director.gd) zur
 
 Die Regeltests prüfen Referenz-Zugbaumzahlen (Startstellung 20/400/8902, Kiwipete 48/2039, Turm-Bauern-Endspiel 2812 auf Tiefe 3), Königssicherheit, beidseitige Rochaden und Rechteverlust, En passant einschließlich Selbstschach, alle vier Umwandlungen, sofortiges Schlagen, Matt/Patt/Aufgabe und KI-Zugwechsel. Die UI-Prüfung bedient die echte Szene per Maus/Touch, prüft den Musikwechsel zwischen Menü und Partie und verändert die Fenstergröße; währenddessen nicht in das Testfenster klicken.
 
-**Nach dem Taktik-Umbau verifiziert:** 427 klassische Regelprüfungen, 380 klassische Oberflächenprüfungen, 43 Taktik-Daten-/Regelprüfungen und 25 Taktik-Oberflächenprüfungen bestanden. Die neuen Prüfungen decken 12×16/14×18, Gelände, isolierte Zustandskopien, Ability-Hooks, Mausauswahl, Bewegung, Kamera und Menüwechsel ab. Die klassische Oberfläche wurde einschließlich 390×844, 844×390, 360×800, 375×667 und 360×640 geprüft.
+**Verifiziert am 28. Oktober 2026:** 427 klassische Regelprüfungen, 380 klassische Oberflächenprüfungen, 45 Taktik-Datenprüfungen, 53 Match-Prüfungen, 60 Gelände-/Bewegungsprüfungen, 153 Gebäudeprüfungen sowie je 37 native Taktik-UI- und Vertical-Slice-Prüfungen bestanden. Die neuen visuellen Prüfungen liefen auf Apple M4 mit Metal 4.0 / Forward+.
 
 ```sh
 "$GODOT_BIN" --headless --path . --script res://tests/tactical_field_test.gd
+"$GODOT_BIN" --headless --path . --script res://tests/tactical_match_test.gd
+"$GODOT_BIN" --headless --path . --script res://tests/tactical_terrain_test.gd
+"$GODOT_BIN" --headless --path . --script res://tests/building_footprint_test.gd
 "$GODOT_BIN" --path . --script res://tests/tactical_view_smoke.gd
+"$GODOT_BIN" --path . --script res://tests/vertical_slice_test.gd
 ```
 
 Die Smartphone-Prüfungen laufen in Godot-Fenstern auf dem Mac. Physische Android-/iOS-Geräte und installierbare Mobil-Builds sind noch nicht verifiziert. Der Slice hat einen lokalen Gegner, keinen Netzwerkmodus und keinen Match-Speicher. Wiederholungs-/50-Züge-Remisverfahren und automatische Remiserkennung bei toten Stellungen sind noch nicht umgesetzt; Matt und Patt werden erkannt.

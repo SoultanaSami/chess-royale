@@ -7,7 +7,16 @@ var model: Node3D
 var foundation: Node3D
 var plate: Label3D
 var selection: MeshInstance3D
+signal impacted(cell: Vector2i)
 var move_tween: Tween
+var _lift_tween: Tween
+var _hover_tween: Tween
+var _selected := false
+var _hovered := false
+var _moving := false
+var _lift: float = 0
+var _model_rest_y: float = .19
+var _rim: StandardMaterial3D
 var last_cell := Vector2i(-1, -1)
 var pick_area: Area3D
 var terrain_board: BoardState
@@ -51,7 +60,8 @@ func setup(unit: UnitState, catalog: Catalog = null, rows: int = 8, columns: int
 	team_ring.outer_radius = 0.445
 	team_ring.rings = 32
 	team_ring.ring_segments = 8
-	ModelSculptor.mesh(self, team_ring, Vector3(0, 0.04, 0), ModelSculptor.material(team_color, 0.3, 0.5, 0.6))
+	_rim = ModelSculptor.material(team_color,.3,.5,.6)
+	ModelSculptor.mesh(self,team_ring,Vector3(0,.04,0),_rim)
 	plate = Label3D.new()
 	plate.font_size = 18
 	plate.pixel_size = 0.0018
@@ -107,28 +117,36 @@ func sync(unit: UnitState, catalog: Catalog, animate: bool = true) -> void:
 		if foundation != null:
 			remove_child(foundation)
 			foundation.queue_free()
+			foundation = null
 		if model != null:
 			remove_child(model)
 			model.queue_free()
-		var role: String = data.chess_type() if data is UnitData else data.base_chess_type
-		var foundation_path: String = FOUNDATION_PATHS.get(role, "")
-		assert(not foundation_path.is_empty(), "No foundation configured for chess role %s" % role)
-		var foundation_scene := load(foundation_path) as PackedScene
-		assert(foundation_scene != null, "Foundation must resolve to an imported GLB PackedScene")
-		foundation = foundation_scene.instantiate() as Node3D
-		assert(foundation != null, "Foundation root must be Node3D")
-		foundation.name = "Foundation"
-		foundation.scale = Vector3.ONE * FOUNDATION_SCALE
-		foundation.position.y = FOUNDATION_Y_OFFSET
-		foundation.rotation.y = PI if unit.team == 0 else 0
-		add_child(foundation)
+		if not (data is UnitData and data.model_includes_pedestal):
+			var role: String = data.chess_type() if data is UnitData else data.base_chess_type
+			var foundation_path: String = FOUNDATION_PATHS.get(role, "")
+			assert(not foundation_path.is_empty(), "No foundation configured for chess role %s" % role)
+			var foundation_scene := load(foundation_path) as PackedScene
+			assert(foundation_scene != null, "Foundation must resolve to an imported GLB PackedScene")
+			foundation = foundation_scene.instantiate() as Node3D
+			assert(foundation != null, "Foundation root must be Node3D")
+			foundation.name = "Foundation"
+			foundation.scale = Vector3.ONE * FOUNDATION_SCALE
+			foundation.position.y = FOUNDATION_Y_OFFSET
+			foundation.rotation.y = PI if unit.team == 0 else 0
+			add_child(foundation)
 		var packed: PackedScene = data.mesh_prefab if data is UnitData else load(data.model_asset_path)
 		assert(packed is PackedScene, "modelAssetPath must resolve to an imported GLB or PackedScene")
 		model = packed.instantiate()
-		_apply_team_materials(model, unit.team)
-		model.position.y = 0.19
+		if not (data is UnitData and data.preserve_model_materials):
+			_apply_team_materials(model,unit.team)
+		_model_rest_y = 0.0 if data is UnitData and data.model_includes_pedestal else .19
+		model.position.y = _model_rest_y
 		model.rotation.y = 0 if unit.team == 0 else PI
 		add_child(model)
+		plate.visible = not (data is UnitData and data.model_includes_pedestal)
+		if terrain_board != null:
+			for mesh in find_children("*","MeshInstance3D",true,false):
+				mesh.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
 	var display_name: String = data.unit_name if data is UnitData else data.display_name
 	plate.text = display_name.split(" ")[0].to_upper()
 	var target := BoardView.world_position(unit.cell, grid_rows, grid_columns)
@@ -136,9 +154,56 @@ func sync(unit: UnitState, catalog: Catalog, animate: bool = true) -> void:
 	if unit.cell != last_cell:
 		if move_tween != null:
 			move_tween.kill()
-		if animate:
+		if animate and terrain_board != null:
+			jump_to(target,unit.cell)
+		elif animate:
 			move_tween = create_tween()
 			move_tween.tween_property(self, "position", target, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			position = target
 		last_cell = unit.cell
+
+func set_selected(value: bool) -> void:
+	selection.visible = value and not _moving
+	if _selected == value: return
+	_selected = value
+	if terrain_board == null: return
+	if _lift_tween != null: _lift_tween.kill()
+	if not _moving:
+		_lift_tween = create_tween()
+		_lift_tween.tween_property(self,"_lift",.3 if value else 0.0,.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+func set_hovered(value: bool) -> void:
+	if _hovered == value or terrain_board == null: return
+	_hovered = value
+	if _hover_tween != null: _hover_tween.kill()
+	_hover_tween = create_tween()
+	_hover_tween.tween_property(self,"scale",Vector3.ONE * (1.05 if value else 1.0),.12)
+
+func jump_to(target: Vector3, cell: Vector2i, deploy: bool = false) -> void:
+	if move_tween != null: move_tween.kill()
+	if _lift_tween != null: _lift_tween.kill()
+	_moving = true
+	_lift = 0
+	selection.visible = false
+	var start := target + Vector3(0,1.1,0) if deploy else position
+	var height := 0.0 if deploy else maxf(.65,absf(target.y-start.y)*.65+.3)
+	position = start
+	move_tween = create_tween()
+	move_tween.tween_method(func(t: float): position = start.lerp(target,t) + Vector3.UP*sin(PI*t)*height,0.0,1.0,.25 if deploy else .30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN if deploy else Tween.EASE_IN_OUT)
+	move_tween.tween_callback(func():
+		position = target
+		_moving = false
+		selection.visible = _selected
+		impacted.emit(cell)
+		if _selected:
+			_lift_tween = create_tween()
+			_lift_tween.tween_interval(.12)
+			_lift_tween.tween_property(self,"_lift",.3,.12)
+	)
+
+func _process(_delta: float) -> void:
+	if terrain_board == null or model == null: return
+	var bob := sin(Time.get_ticks_msec()*.003+uid)*.024 if _selected and not _moving else 0.0
+	model.position.y = _model_rest_y + _lift + bob
+	_rim.emission_energy_multiplier = 2.1 if _selected else 1.3 if _hovered else .45

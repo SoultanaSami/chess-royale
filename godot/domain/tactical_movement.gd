@@ -62,7 +62,7 @@ static func sliding(board: BoardState, unit: UnitState, attack: bool) -> Array[V
 			if budget < 0: break
 			var occupant := board.at(to)
 			if attack or occupant == null or (occupant.team != unit.team and distance <= unit.definition.attack_range): result.append(to)
-			if occupant != null or board.tile_at(to).terrain == BattlefieldTileData.Terrain.CASTLE: break
+			if occupant != null or board.is_structure(to) or board.tile_at(to).terrain == BattlefieldTileData.Terrain.CASTLE: break
 			from = to
 	return result
 
@@ -99,7 +99,7 @@ static func line_visible(board: BoardState, from: Vector2i, to: Vector2i) -> boo
 	var ceiling := maxi(board.tile_at(from).elevation, board.tile_at(to).elevation)
 	for i in range(1, count):
 		var cell := Vector2i(Vector2(from).lerp(Vector2(to), float(i)/count).round())
-		if board.tile_at(cell).elevation > ceiling: return false
+		if board.tile_at(cell).elevation > ceiling or board.is_structure(cell): return false
 	return true
 
 static func ranged_targets(board: BoardState, unit: UnitState) -> Array[Vector2i]:
@@ -116,5 +116,5 @@ static func ranged_targets(board: BoardState, unit: UnitState) -> Array[Vector2i
 			if not board.contains(to): break
 			var spotted := board.tile_at(to).elevation <= level or has_vision(board, unit.team, to)
 			if spotted and board.is_walkable(to) and line_visible(board, unit.cell, to): result.append(to)
-			if board.at(to) != null or board.tile_at(to).terrain == BattlefieldTileData.Terrain.CASTLE: break
+			if board.at(to) != null or board.is_structure(to) or board.tile_at(to).terrain == BattlefieldTileData.Terrain.CASTLE: break
 	return result

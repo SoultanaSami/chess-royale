@@ -1,7 +1,7 @@
 class_name TacticalCatalog
 extends RefCounted
 ## Tactical data is authored as resources; legacy king/spell entries remain in Catalog.
-const IDS := ["phalanx", "cavalry", "assassin", "ram", "trebuchet", "golem", "queen", "vanguard"]
+const IDS := ["phalanx", "cavalry", "assassin", "ram", "trebuchet", "golem", "queen", "vanguard", "ironbound"]
 const DEFAULT_RESERVE := ["phalanx", "cavalry", "assassin", "ram", "queen"]
 var entries: Dictionary = {}
 

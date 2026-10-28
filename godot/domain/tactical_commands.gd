@@ -6,17 +6,19 @@ static func castle(board: BoardState, side: int) -> Vector2i:
 
 static func threats(board: BoardState, side: int) -> Array[UnitState]:
 	var result: Array[UnitState] = []
-	var target := castle(board, side)
+	var targets := board.footprint(castle(board, side))
 	for unit in board.units.values():
-		if unit.team != side and (MovementRules.attacks_from(board, unit, target) or target in MovementRules.ranged_targets(board, unit)):
-			result.append(unit)
+		if unit.team == side: continue
+		for target in targets:
+			if MovementRules.attacks_from(board, unit, target) or target in MovementRules.ranged_targets(board, unit):
+				result.append(unit)
+				break
 	return result
 
-static func deployment_cells(board: BoardState, side: int) -> Array[Vector2i]:
+static func deployment_cells(board: BoardState, side: int, role: String = "") -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
-	for offset in MovementRules.ORTHOGONAL + MovementRules.DIAGONAL:
-		var cell: Vector2i = castle(board, side) + offset
-		if board.can_enter(cell) and board.at(cell) == null:
+	for cell in board.capture_ring(castle(board, side)):
+		if board.at(cell) == null and not (role == "ROOK" and board.tile_at(cell).forest):
 			result.append(cell)
 	return result
 
@@ -56,7 +58,7 @@ static func legal(board: BoardState, action: Dictionary, side: int, deck: Array,
 		if not slot is int or slot < 0 or slot >= deck.size():
 			return false
 		var data := catalog.get_unit(deck[slot])
-		return data != null and data.resource_cost <= gold and action.to in deployment_cells(board, side)
+		return data != null and data.resource_cost <= gold and action.to in deployment_cells(board, side, data.chess_type())
 	if not action.get("from") is Vector2i:
 		return false
 	var unit := board.at(action.from)
@@ -88,7 +90,7 @@ static func actions(board: BoardState, side: int, deck: Array, gold: int, catalo
 				result.append({"kind": "formation", "cells": cells.duplicate()})
 	for slot in range(deck.size()):
 		if catalog.get_unit(deck[slot]).resource_cost <= gold:
-			for cell in deployment_cells(board, side):
+			for cell in deployment_cells(board, side, catalog.get_unit(deck[slot]).chess_type()):
 				result.append({"kind": "deploy", "slot": slot, "to": cell})
 	return result
 

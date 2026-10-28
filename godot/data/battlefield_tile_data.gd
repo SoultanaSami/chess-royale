@@ -10,6 +10,7 @@ enum Terrain { STANDARD, IMPASSABLE, RIVER, RESOURCE_NODE, CASTLE, VOID }
 @export var ramp: bool = false
 ## Direction from this lower ramp tile toward its higher neighbor.
 @export var ramp_direction := Vector2i.ZERO
+@export var building_anchor := Vector2i(-1, -1)
 @export_range(-1, 1) var owner: int = -1
 @export_range(0, 99) var resource_yield: int = 1
 @export_range(0, 99) var garrison_shields: int = 3

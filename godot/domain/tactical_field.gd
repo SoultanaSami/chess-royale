@@ -29,7 +29,8 @@ func seed_vanguard(decks: Array = []) -> bool:
 		var forward := Vector2i(-1 if side == 0 else 1, 0)
 		var spawn_cells: Array = board.vanguards.get(side, [])
 		if spawn_cells.is_empty():
-			spawn_cells = [keep + forward + Vector2i(0,-1), keep + forward + Vector2i(0,1), keep + Vector2i(0,-2), keep + Vector2i(0,2)]
+			var front := -1 if side == 0 else 2
+			spawn_cells = [keep + Vector2i(front,0), keep + Vector2i(front,1), keep + Vector2i(0,-1), keep + Vector2i(0,2)]
 		if spawn_cells.size() != 4: return false
 		var ids := ["phalanx", "phalanx", "cavalry", "ram"]
 		for i in range(4):

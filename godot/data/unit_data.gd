@@ -9,6 +9,8 @@ enum ChessRole { PAWN, KNIGHT, BISHOP, ROOK, QUEEN }
 @export_range(0, 99) var resource_cost: int = 1
 ## Figurine only: UnitView supplies a role-specific stone foundation and team marker.
 @export var mesh_prefab: PackedScene
+@export var model_includes_pedestal: bool = false
+@export var preserve_model_materials: bool = false
 ## Trusted project script extending UnitAbility; never load scripts from user deck JSON.
 @export var custom_ability_script: Script
 ## Zero means no ranged attack. Ground movement is unaffected by this capability.

@@ -14,6 +14,10 @@ var distance: float = 28.0
 var home_distance: float = 28.0
 var orbiting: bool = false
 var controls_enabled: bool = true
+var shake_remaining: float = 0
+
+func shake() -> void:
+	shake_remaining = .15
 
 func setup(view: BoardView) -> void:
 	camera = view.camera
@@ -24,10 +28,10 @@ func setup(view: BoardView) -> void:
 
 func focus_base(side: int) -> void:
 	var cell := TacticalCommands.castle(board, side)
-	focus = BoardView.world_position(cell, board.rows, board.columns) + Vector3(2 if side == 0 else -2, board.surface_height(cell) + .4, -2 if side == 0 else 2)
+	focus = BoardView.world_position(cell, board.rows, board.columns) + Vector3(2 if side == 0 else -2, board.surface_height(cell) + .4, -1 if side == 0 else 1)
 	yaw = 0 if side == 0 else PI
 	tilt = deg_to_rad(52)
-	distance = 21
+	distance = 22
 	update_camera()
 
 func reset_view() -> void:
@@ -38,6 +42,7 @@ func reset_view() -> void:
 	update_camera()
 
 func _process(delta: float) -> void:
+	shake_remaining = maxf(0,shake_remaining-delta)
 	if not controls_enabled or camera == null or not get_window().has_focus():
 		orbiting = false
 		return
@@ -93,3 +98,6 @@ func update_camera() -> void:
 	camera.far = 300
 	camera.position = focus + Vector3(sin(yaw) * cos(tilt), sin(tilt), cos(yaw) * cos(tilt)) * distance
 	camera.look_at(focus)
+	if shake_remaining > 0:
+		var time := Time.get_ticks_msec()*.001
+		camera.position += camera.basis.x*sin(time*81)*shake_remaining*.45 + Vector3.UP*cos(time*67)*shake_remaining*.23

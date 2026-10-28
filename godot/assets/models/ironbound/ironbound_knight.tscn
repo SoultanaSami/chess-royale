@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://assets/models/ironbound/ironbound_knight.glb" id="1"]
+[node name="IronboundKnight" type="Node3D"]
+[node name="Figurine" parent="." instance=ExtResource("1")]
+position = Vector3(-0.00357, 0.68484, 0.00016)
+rotation = Vector3(0, 3.141593, 0)
+scale = Vector3(0.72, 0.72, 0.72)

@@ -1,6 +1,5 @@
 # Blender 4.4.0
 # www.blender.org
-mtllib model.mtl
 o model
 v 0.417381 0.016644 0.757215
 v 0.425075 -0.003588 0.758463

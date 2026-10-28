@@ -18,6 +18,8 @@ extends Resource
 @export var enemy_vanguard: Array[Vector2i] = []
 @export var high_yield_mines: Array[Vector2i] = []
 @export var void_cells: Array[Vector2i] = []
+@export var mine_prefab: PackedScene
+@export var castle_prefab: PackedScene
 @export_range(0, 99) var node_income: int = 1
 @export_range(1, 99) var castle_shields: int = 3
 @export_range(0, 99) var starting_gold: int = 10
@@ -30,7 +32,7 @@ func castle_cell(team: int) -> Vector2i:
 	var custom := player_castle if team == 0 else enemy_castle
 	if custom != Vector2i(-1, -1):
 		return custom
-	return Vector2i(rows - 1 if team == 0 else 0, columns / 2)
+	return Vector2i(rows - 2 if team == 0 else 0, columns / 2)
 
 func validation_error() -> String:
 	if rows < 8 or columns < 8 or rows > 40 or columns > 40:
@@ -58,6 +60,18 @@ func validation_error() -> String:
 	for cell in road_cells:
 		if cell.x < 0 or cell.y < 0 or cell.x >= rows or cell.y >= columns or cell in river_cells or cell in impassable_cells or cell in forest_cells:
 			return "Road outside walkable map: %s" % cell
+	var structures := {}
+	for anchor in resource_cells + [castle_cell(0), castle_cell(1)]:
+		var level := 2 if anchor in high_ground else 1 if anchor in mid_ground else 0
+		for r in range(2):
+			for c in range(2):
+				var cell: Vector2i = anchor + Vector2i(r,c)
+				if cell.x >= rows or cell.y >= columns or structures.has(cell): return "Building footprints overlap or leave the map."
+				if cell in river_cells or cell in impassable_cells or cell in void_cells or cell in forest_cells or cell in ramps_north or cell in ramps_south: return "Buildings require clear, flat ground."
+				var height := 2 if cell in high_ground else 1 if cell in mid_ground else 0
+				if height != level: return "Building footprint crosses a cliff."
+				if cell in player_vanguard or cell in enemy_vanguard: return "Vanguard overlaps a building."
+				structures[cell] = anchor
 	return ""
 
 func create_board() -> BoardState:
@@ -89,4 +103,12 @@ func create_board() -> BoardState:
 		tile.terrain = BattlefieldTileData.Terrain.CASTLE
 		tile.owner = side
 		tile.garrison_shields = castle_shields
+	for anchor in resource_cells + [castle_cell(0), castle_cell(1)]:
+		var cells: Array[Vector2i] = []
+		for r in range(2):
+			for c in range(2):
+				var cell: Vector2i = anchor + Vector2i(r,c)
+				cells.append(cell)
+				board.tile_at(cell).building_anchor = anchor
+		board.buildings[anchor] = cells
 	return board

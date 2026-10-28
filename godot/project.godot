@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="Schachschlachtfeld"
-config/description="Rundenbasiertes Schach auf 8×8 mit Figurenvarianten und geplanten Zaubern."
+config/description="PC-Taktik im düsteren Hochland mit Reserve-Decks, Goldminen und Burgbelagerungen."
 run/main_scene="res://scenes/war_room.tscn"
-config/features=PackedStringArray("4.7", "GL Compatibility")
+config/features=PackedStringArray("4.7", "Forward Plus")
 
 [display]
 
@@ -27,7 +27,7 @@ window/handheld/orientation=6
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
+renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
 anti_aliasing/quality/msaa_3d=2
 environment/defaults/default_clear_color=Color(0.025, 0.03, 0.035, 1)

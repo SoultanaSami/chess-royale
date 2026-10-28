@@ -7,6 +7,8 @@ var columns: int
 var tiles: Dictionary = {}
 var castles: Dictionary = {}
 var vanguards: Dictionary = {}
+## Anchor -> footprint cells. Objective state is stored only on the anchor tile.
+var buildings: Dictionary = {}
 const LEVEL_HEIGHT := 1.6
 
 func surface_height(cell: Vector2i) -> float:
@@ -37,7 +39,38 @@ func is_walkable(cell: Vector2i) -> bool:
 	return contains(cell) and tile_at(cell).is_walkable()
 
 func can_enter(cell: Vector2i) -> bool:
-	return is_walkable(cell) and tile_at(cell).terrain != BattlefieldTileData.Terrain.CASTLE
+	return is_walkable(cell) and not is_structure(cell) and tile_at(cell).terrain != BattlefieldTileData.Terrain.CASTLE
+
+func is_structure(cell: Vector2i) -> bool:
+	return contains(cell) and tile_at(cell).building_anchor != NONE
+
+func footprint(anchor: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	result.assign(buildings.get(anchor, [anchor]))
+	return result
+
+func objectives(kind: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for anchor in buildings:
+		if tile_at(anchor).terrain == kind: result.append(anchor)
+	return result
+
+func capture_ring(anchor: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for cell in footprint(anchor):
+		for row in [-1, 0, 1]:
+			for col in [-1, 0, 1]:
+				var neighbor: Vector2i = cell + Vector2i(row, col)
+				if can_enter(neighbor) and tile_at(neighbor).elevation == tile_at(anchor).elevation and neighbor not in result:
+					result.append(neighbor)
+	return result
+
+func ring_teams(anchor: Vector2i) -> Array[int]:
+	var result: Array[int] = []
+	for cell in capture_ring(anchor):
+		var unit := at(cell)
+		if unit != null and unit.team not in result: result.append(unit.team)
+	return result
 
 static func inside(cell: Vector2i) -> bool:
 	# Compatibility for the classic UI only. Rules use instance-specific contains().
@@ -81,6 +114,7 @@ func copy(copy_tiles: bool = true) -> BoardState:
 	result.next_uid = next_uid
 	result.castles = castles.duplicate()
 	result.vanguards = vanguards.duplicate(true)
+	result.buildings = buildings.duplicate(true)
 	result.en_passant_target = en_passant_target
 	result.en_passant_pawn = en_passant_pawn
 	for cell in units:

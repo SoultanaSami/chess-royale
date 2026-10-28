@@ -28,16 +28,15 @@ func _ready() -> void:
 	game = TacticalMatch.new(battlefield_config, load_deck())
 	board_view = BoardView.new()
 	board_view.terrain_board = game.board
+	board_view.battlefield_config = battlefield_config
 	add_child(board_view)
 	camera_controller = TacticalCameraController.new()
 	add_child(camera_controller)
 	camera_controller.setup(board_view)
+	board_view.unit_impact.connect(camera_controller.shake)
 	var gallery := CardGallery.new()
 	add_child(gallery)
-	gallery.build(Catalog.new())
-	for id in game.catalog.entries:
-		if not gallery.textures.has(str(id)):
-			gallery.textures[str(id)] = gallery.textures[TacticalCatalog.DEFAULT_RESERVE[game.catalog.get_unit(id).chess_role]]
+	gallery.build_tactical(game.catalog)
 	var canvas := CanvasLayer.new()
 	add_child(canvas)
 	input_surface = TacticalBoardInput.new()
@@ -46,6 +45,7 @@ func _ready() -> void:
 	input_surface.hovered.connect(on_hovered)
 	input_surface.formation_selected.connect(select_box)
 	input_surface.cancelled.connect(clear_selection)
+	input_surface.mouse_exited.connect(func(): board_view.hover_cell(BoardState.NONE))
 	input_surface.camera_input.connect(camera_controller._unhandled_input)
 	input_surface.card_dropped.connect(deploy)
 	input_surface.drop_allowed = func(slot, point): return ready_to_play() and board_view.pick(point) in game.deploy_targets(slot, 0)
@@ -278,15 +278,22 @@ func on_hovered(point: Vector2) -> void:
 	if not ready_to_play() or camera_controller.orbiting: return
 	var cell := board_view.pick(point)
 	board_view.select_tactical(selected, targets, attack_targets, cell)
+	board_view.hover_cell(cell)
+	board_view.clear_children(board_view.preview_layer)
+	if selected != BoardState.NONE and cell in targets and selected_slot < 0:
+		var unit := game.board.at(selected)
+		var relocate := not shooting and not (cell in attack_targets and unit != null and cell in MovementRules.ranged_targets(game.board,unit))
+		board_view.preview_destination(selected,cell,relocate)
 	mark_formation()
 
 func mark_formation() -> void:
 	if formation.size() > 1:
 		for view in board_view.units.values():
-			view.selection.visible = view.last_cell in formation
+			view.set_selected(view.last_cell in formation)
 
 func refresh() -> void:
 	if hud == null: return
+	board_view.clear_children(board_view.preview_layer)
 	board_view.sync_board(game.board)
 	board_view.sync_objectives(game.board, game.siege)
 	targets.clear()
@@ -323,6 +330,7 @@ func refresh() -> void:
 		hud.pause_layer.hide()
 
 func on_action(action: Dictionary) -> void:
+	if action.kind == "deploy": board_view.pending_deploy.append(action.to)
 	if action.kind == "shoot":
 		board_view.projectile(action.from, action.to)
 

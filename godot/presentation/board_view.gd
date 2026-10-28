@@ -5,11 +5,15 @@ const SPACING := 1.15
 var grid_rows: int = 8
 var grid_columns: int = 8
 var terrain_board: BoardState
+var battlefield_config: BattlefieldConfig
+signal unit_impact
 var camera: Camera3D
 var highlights := Node3D.new()
 var check_layer := Node3D.new()
 var units: Dictionary = {}
 var gold: StandardMaterial3D
+var pending_deploy: Array[Vector2i] = []
+var preview_layer := Node3D.new()
 
 static func world_position(cell: Vector2i, rows: int = 8, columns: int = 8) -> Vector3:
 	return Vector3((cell.y - (columns - 1) * 0.5) * SPACING, 0.06, (cell.x - (rows - 1) * 0.5) * SPACING)
@@ -43,21 +47,6 @@ func _ready() -> void:
 	env.ambient_light_color = Color("a0a5a3")
 	env.ambient_light_energy = 0.35
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	if terrain_board != null:
-		var sky := Sky.new()
-		var atmosphere := ProceduralSkyMaterial.new()
-		atmosphere.sky_top_color = Color("16212a")
-		atmosphere.sky_horizon_color = Color("46545a")
-		atmosphere.ground_bottom_color = Color("30392c")
-		sky.sky_material = atmosphere
-		env.sky = sky
-		env.background_mode = Environment.BG_SKY
-		env.ambient_light_energy = .32
-		env.fog_enabled = true
-		env.fog_light_color = Color("34454b")
-		env.fog_density = .006
-		env.fog_height = .8
-		env.fog_height_density = .09
 
 	environment.environment = env
 	add_child(environment)
@@ -67,6 +56,8 @@ func _ready() -> void:
 	moon.rotation_degrees = Vector3(-65, -25, 0)
 	moon.shadow_enabled = true
 	add_child(moon)
+	if terrain_board != null:
+		BattleAtmosphere.configure(self, env, moon, terrain_board)
 	camera = Camera3D.new()
 	camera.position = Vector3(0, 15.9, 13.35)
 	camera.fov = 38
@@ -76,6 +67,7 @@ func _ready() -> void:
 	camera.current = true
 	add_child(highlights)
 	add_child(check_layer)
+	add_child(preview_layer)
 
 func fit_view(view_size: Vector2,phone: bool) -> void:
 	if camera == null or view_size.y <= 0:
@@ -124,6 +116,10 @@ func sync_board(board: BoardState, catalog: Catalog = null, animate: bool = true
 			add_child(view)
 			view.setup(unit, catalog, grid_rows, grid_columns, terrain_board)
 			units[unit.uid] = view
+			view.impacted.connect(on_unit_impact)
+			if unit.cell in pending_deploy:
+				view.jump_to(cell_position(unit.cell),unit.cell,true)
+				pending_deploy.erase(unit.cell)
 		else:
 			units[unit.uid].sync(unit, catalog, animate)
 	for uid in units.keys():
@@ -165,7 +161,7 @@ func sync(game: GameManager, animate: bool = true) -> void:
 
 func select(cell: Vector2i, targets: Array[Vector2i], path_target := Vector2i(-1, -1)) -> void:
 	for unit in units.values():
-		unit.selection.visible = unit.last_cell == cell
+		unit.set_selected(unit.last_cell == cell)
 	clear_children(highlights)
 	for target in targets:
 		rune_frame(highlights, target, gold)
@@ -199,6 +195,8 @@ func reset() -> void:
 	units.clear()
 	clear_children(highlights)
 	clear_children(check_layer)
+	clear_children(preview_layer)
+	pending_deploy.clear()
 
 func clear_children(parent: Node) -> void:
 	for child in parent.get_children():
@@ -208,23 +206,13 @@ func clear_children(parent: Node) -> void:
 func sync_objectives(board: BoardState, siege: Array[bool]) -> void:
 	clear_children(check_layer)
 	var markers: Dictionary = get_meta("objective_markers", {})
-	for cell in markers:
-		var marker: Dictionary = markers[cell]
-		var tile := board.tile_at(cell)
-		var color := Color("72bbc8") if tile.owner == 0 else Color("e16b58") if tile.owner == 1 else VisualTheme.GOLD
-		marker.material.albedo_color = color
-		marker.material.emission = color
-		marker.caption.modulate = color
-		if tile.terrain == BattlefieldTileData.Terrain.RESOURCE_NODE:
-			marker.caption.text = "GOLDMINE +%d · %s" % [tile.resource_yield, "DEINE" if tile.owner == 0 else "GEGNER" if tile.owner == 1 else "NEUTRAL"]
-		else:
-			var threatened: bool = tile.owner in [0, 1] and siege[tile.owner]
-			marker.caption.text = ("! BELAGERT · " if threatened else "BURG · ") + str(tile.garrison_shields)
-			if threatened:
-				var danger := ModelSculptor.material(Color("ff5144"), 0, .5, .7)
-				danger.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-				rune_frame(check_layer, cell, danger)
-				marker.caption.modulate = Color("ff6755")
+	for anchor in markers:
+		var tile := board.tile_at(anchor)
+		var threatened: bool = tile.terrain == BattlefieldTileData.Terrain.CASTLE and tile.owner in [0,1] and siege[tile.owner]
+		markers[anchor].update_state(board,threatened)
+		if threatened:
+			for cell in board.footprint(anchor):
+				check_layer.add_child(BattleDecal.create(board,cell,BattleDecal.material(Color(1,.12,.06,.65),2),.05))
 
 func projectile(from: Vector2i, to: Vector2i) -> void:
 	var fire := ModelSculptor.material(Color("ffb84f"), .1, .3, 2)
@@ -237,15 +225,15 @@ func projectile(from: Vector2i, to: Vector2i) -> void:
 	tween.tween_callback(shot.queue_free)
 
 func select_tactical(cell: Vector2i, destinations: Array[Vector2i], attacks: Array[Vector2i], hovered: Vector2i = BoardState.NONE) -> void:
-	for unit in units.values(): unit.selection.visible = unit.last_cell == cell
+	for unit in units.values(): unit.set_selected(unit.last_cell == cell)
 	clear_children(highlights)
 	var shown := {}
 	for target in destinations:
 		if target not in attacks:
-			tactical_overlay(target, Color(.16,.53,.95,.33))
+			tactical_overlay(target, Color(.08,.65,1,.78))
 			shown[target] = true
 	for target in attacks:
-		tactical_overlay(target, Color(.95,.16,.13,.40))
+		tactical_overlay(target, Color(.95,.10,.08,.85),1)
 		shown[target] = true
 	if terrain_board == null: return
 	if terrain_board.contains(hovered):
@@ -254,27 +242,44 @@ func select_tactical(cell: Vector2i, destinations: Array[Vector2i], attacks: Arr
 				var at := Vector2i(row,col)
 				if terrain_board.is_walkable(at) and not shown.has(at):
 					tactical_overlay(at, Color(.65,.72,.72,.07))
-	if terrain_board.contains(cell): tactical_overlay(cell, Color(1,.78,.30,.23))
+	if terrain_board.contains(cell): tactical_overlay(cell, Color(1,.70,.24,.55),2)
 
-func tactical_overlay(cell: Vector2i, color: Color) -> void:
+func tactical_overlay(cell: Vector2i, color: Color, pattern: int = 0) -> void:
 	if terrain_board == null or not terrain_board.contains(cell): return
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var unused: Array[Vector3] = []
-	var points := BattlefieldTerrainView.corners(terrain_board, cell, .035)
-	BattlefieldTerrainView.quad(surface, points, unused)
-	var material := StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = color
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	ModelSculptor.mesh(highlights, surface.commit(), Vector3.ZERO, material)
-	var edge := ImmediateMesh.new()
-	edge.surface_begin(Mesh.PRIMITIVE_LINES)
-	for i in range(4):
-		edge.surface_add_vertex(points[i] + Vector3(0,.005,0))
-		edge.surface_add_vertex(points[(i+1)%4] + Vector3(0,.005,0))
-	edge.surface_end()
-	var border := material.duplicate() as StandardMaterial3D
-	border.albedo_color.a = minf(.7, color.a * 2)
-	ModelSculptor.mesh(highlights, edge, Vector3.ZERO, border)
+	highlights.add_child(BattleDecal.create(terrain_board,cell,BattleDecal.material(color,pattern)))
+
+func hover_cell(cell: Vector2i) -> void:
+	for unit in units.values(): unit.set_hovered(unit.last_cell == cell)
+
+func on_unit_impact(cell: Vector2i) -> void:
+	if terrain_board != null:
+		BattleEffects.impact(self,terrain_board,cell)
+		unit_impact.emit()
+
+func preview_destination(selected: Vector2i, destination: Vector2i, relocate: bool) -> void:
+	clear_children(preview_layer)
+	if terrain_board == null or not terrain_board.contains(destination): return
+	var unit := terrain_board.at(selected)
+	if unit == null: return
+	var start := cell_position(selected) + Vector3(0,.5,0)
+	var finish := cell_position(destination) + Vector3(0,.12,0)
+	var curve := ImmediateMesh.new()
+	curve.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
+	for i in range(25):
+		var t := i/24.0
+		curve.surface_add_vertex(start.lerp(finish,t)+Vector3.UP*sin(PI*t)*1.0)
+	curve.surface_end()
+	var light := ModelSculptor.material(Color("ffc875"),0,.4,3)
+	light.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ModelSculptor.mesh(preview_layer,curve,Vector3.ZERO,light)
+	if not relocate or not terrain_board.can_enter(destination): return
+	var simulation := terrain_board.copy(false)
+	var ghost := simulation.at(selected)
+	if simulation.at(destination) != null: simulation.remove(simulation.at(destination))
+	simulation.move(ghost,destination)
+	var threats := TacticalMovement.attack_targets(simulation,ghost)
+	for cell in MovementRules.ranged_targets(simulation,ghost):
+		if cell not in threats: threats.append(cell)
+	for cell in threats:
+		if terrain_board.is_walkable(cell):
+			preview_layer.add_child(BattleDecal.create(terrain_board,cell,BattleDecal.material(Color(.75,.40,.3,.16),1),.045))
