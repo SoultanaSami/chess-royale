@@ -7,7 +7,7 @@ enum ChessRole { PAWN, KNIGHT, BISHOP, ROOK, QUEEN }
 @export var unit_name: String
 @export var chess_role: ChessRole = ChessRole.PAWN
 @export_range(0, 99) var resource_cost: int = 1
-## Figurine only: UnitView supplies the common stone pedestal and team ring.
+## Figurine only: UnitView supplies a role-specific stone foundation and team marker.
 @export var mesh_prefab: PackedScene
 ## Trusted project script extending UnitAbility; never load scripts from user deck JSON.
 @export var custom_ability_script: Script
